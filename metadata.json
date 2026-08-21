@@ -1,0 +1,6 @@
+{
+  "name": "Althaf Leathers",
+  "description": "Everyday leather goods, bags, wallets, and belts crafted in Proddatur, Andhra Pradesh. Est. 2026.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
