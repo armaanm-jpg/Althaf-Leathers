@@ -13,7 +13,8 @@ import {
   ArrowLeft,
   Building2,
   Check,
-  Award
+  Award,
+  MessageCircle
 } from 'lucide-react';
 import { Product, ProductCategory } from '../types';
 import { ProductCard } from '../components/ProductCard';
@@ -25,8 +26,8 @@ interface ProductDetailPageProps {
   onBackToShop: () => void;
   onSelectProduct: (product: Product) => void;
   onQuickView: (product: Product) => void;
-  onAddToCart: (product: Product, colorName: string, size?: string, monogram?: string, qty?: number) => void;
-  onBuyNow: (product: Product, colorName: string, size?: string, monogram?: string, qty?: number) => void;
+  onAddToCart: (product: Product, colorName: string, size?: string, quantity?: number) => void;
+  onBuyNow: (product: Product, colorName: string, size?: string, quantity?: number) => void;
   isWishlisted: boolean;
   onToggleWishlist: (product: Product) => void;
   onOpenBulkModal: (product: Product) => void;
@@ -48,7 +49,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 }) => {
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [selectedSize, setSelectedSize] = useState(product.sizes ? product.sizes[0] : '');
-  const [monogram, setMonogram] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [openAccordion, setOpenAccordion] = useState<string | null>('specs');
@@ -62,13 +62,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   };
 
   const handleAddToCartClick = () => {
-    onAddToCart(product, currentColor.name, selectedSize || undefined, monogram || undefined, quantity);
+    onAddToCart(product, currentColor.name, selectedSize || undefined, quantity);
     setAddedAnimation(true);
     setTimeout(() => setAddedAnimation(false), 2000);
   };
 
   const handleBuyNowClick = () => {
-    onBuyNow(product, currentColor.name, selectedSize || undefined, monogram || undefined, quantity);
+    onBuyNow(product, currentColor.name, selectedSize || undefined, quantity);
   };
 
   // Recommended related items
@@ -261,28 +261,6 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             </div>
           )}
 
-          {/* Complimentary Hot-Stamp Monogram Customization */}
-          <div className="p-4 bg-[#f2ece2] rounded-2xl border border-[#ded4c6] space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-[#231f1c] flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-[#c19a6b]" /> Complimentary Monogramming
-              </span>
-              <span className="text-[11px] text-[#8c7b6d]">Blind Deboss or Foil</span>
-            </div>
-            <p className="text-[11px] text-[#6b5f54]">
-              Personalize with up to 3 initials hand-stamped on the leather flap by our artisans in Proddatur.
-            </p>
-            <input
-              id="pdp-monogram-input"
-              type="text"
-              maxLength={3}
-              value={monogram}
-              onChange={(e) => setMonogram(e.target.value.toUpperCase())}
-              placeholder="e.g. A.L."
-              className="w-full bg-white border border-[#d8ccbe] rounded-lg px-3 py-2 text-xs uppercase tracking-widest text-[#1a1614] placeholder-[#9c8e82] focus:outline-none focus:border-[#8b4513]"
-            />
-          </div>
-
           {/* Quantity & CTA Buttons */}
           <div className="space-y-3 pt-2">
             <div className="flex gap-3">
@@ -331,9 +309,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             <button
               id="pdp-buy-now-btn"
               onClick={handleBuyNowClick}
-              className="w-full py-3.5 bg-[#8b4513] hover:bg-[#72370e] text-white rounded-xl font-bold text-xs tracking-wider uppercase transition shadow-md cursor-pointer"
+              className="w-full py-3.5 bg-[#25D366] hover:bg-[#1faa4b] text-white rounded-xl font-bold text-xs tracking-wider uppercase transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
             >
-              Buy Now with 1-Click Checkout
+              <MessageCircle className="w-4 h-4" /> Buy Now with WhatsApp Checkout
             </button>
 
             {/* Corporate / Bulk Order CTA */}
@@ -479,6 +457,45 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           ))}
         </div>
       </section>
+
+      {/* Sticky Mobile Bottom Purchase Bar (for effortless mobile buying) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#faf8f5]/95 backdrop-blur-md border-t border-[#e8dfd3] p-3 px-4 shadow-2xl flex items-center justify-between gap-3 animate-in slide-in-from-bottom-2 duration-200">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full border border-black/20" style={{ backgroundColor: currentColor.hex }} />
+            <span className="text-[11px] text-[#73665a] font-medium truncate">{currentColor.name}</span>
+          </div>
+          <p className="font-serif text-base font-bold text-[#1a1614]">
+            {formatINR(product.price * quantity)}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            id="mobile-sticky-wishlist-btn"
+            onClick={() => onToggleWishlist(product)}
+            className={`p-2.5 rounded-xl border transition ${
+              isWishlisted
+                ? 'bg-[#8b4513] text-white border-[#8b4513]'
+                : 'bg-white text-[#231f1c] border-[#d8ccbe]'
+            }`}
+            aria-label="Wishlist"
+          >
+            <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
+          </button>
+          
+          <button
+            id="mobile-sticky-add-btn"
+            onClick={handleAddToCartClick}
+            className={`py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md flex items-center gap-1.5 ${
+              addedAnimation ? 'bg-[#2b6b3e] text-white' : 'bg-[#231f1c] text-white active:scale-95'
+            }`}
+          >
+            {addedAnimation ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
+            <span>{addedAnimation ? 'Added' : 'Add to Bag'}</span>
+          </button>
+        </div>
+      </div>
 
     </div>
   );

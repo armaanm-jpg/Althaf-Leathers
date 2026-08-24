@@ -222,246 +222,210 @@ export const PRODUCTS: Product[] = [
     isFeatured: true
   },
   {
-    id: 'traveler-folio',
-    name: 'The Architect Folio',
-    tagline: 'Padfolio organizer for 13" laptops, A4 notepads, and stylus pens',
-    category: 'Folios',
-    price: 5499,
-    originalPrice: 6200,
+    id: 'classic-derby-shoes',
+    name: 'Classic Leather Derby Shoes',
+    tagline: 'Handcrafted lace-up derby shoes with cushioned insole and non-slip sole',
+    category: 'Shoes',
+    price: 4999,
+    originalPrice: 5999,
     rating: 4.9,
-    reviewCount: 51,
+    reviewCount: 48,
     badge: 'Atelier Signature',
-    leatherType: 'Vegetable-Tanned',
+    leatherType: 'Full-Grain',
     colors: [
       {
         name: 'Heritage Tan',
         hex: '#c19a6b',
-        image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=1000&auto=format&fit=crop'
+        image: 'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=1000&auto=format&fit=crop'
       },
       {
         name: 'Espresso Brown',
         hex: '#3b2f2f',
-        image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=1000&auto=format&fit=crop'
+        image: 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?q=80&w=1000&auto=format&fit=crop'
       },
       {
         name: 'Midnight Black',
         hex: '#1a1a1a',
-        image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=1000&auto=format&fit=crop'
+        image: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=1000&auto=format&fit=crop'
       }
     ],
-    dimensions: '33 cm × 24 cm × 2.5 cm',
-    weight: '480 g',
-    hardware: 'YKK Brass wrap-around zipper with leather pull tab',
-    lining: 'Plush velvet microfiber inner liner',
-    description: 'An executive portfolio built for high-stakes presentations and daily productivity. Holds an iPad Pro 12.9" or 13" MacBook, A4 legal notepad, business cards, cables, and pen loops.',
+    sizes: ['UK 6 (EU 40)', 'UK 7 (EU 41)', 'UK 8 (EU 42)', 'UK 9 (EU 43)', 'UK 10 (EU 44)', 'UK 11 (EU 45)'],
+    dimensions: 'Standard Men\'s Width (D/Medium)',
+    weight: '780 g (pair)',
+    hardware: 'Waxed Cotton Laces with Brass Eyelets',
+    lining: 'Breathable full-grain sheepskin leather lining',
+    description: 'A handsome, versatile derby shoe handcrafted in Proddatur for long office days and formal evenings. Built with an open-lacing system that accommodates different instep heights, complemented by high-density padded latex footbeds.',
     features: [
-      'Full perimeter zip for 180-degree lay-flat opening',
-      'Dual business card slots & passport holder',
-      'Dedicated Apple Pencil / fountain pen sleeve',
-      'Secure magnetic cable loop'
+      'Supple full-grain leather upper that softens to your foot contour',
+      'Dual-layer high-density memory foam insole for all-day comfort',
+      'Durable rubber composite outsole with anti-slip tread pattern',
+      'Reinforced heel counter prevents slipping and blisters'
     ],
     craftsmanshipNotes: [
-      'Hand-creased edges and tailored gussets'
+      'Hand-lasted and hand-stitched welt construction',
+      'Hand-finished edge stained with organic dyes in Proddatur'
     ],
     careInstructions: [
-      'Store flat in dust sleeve when not in use'
+      'Use cedar shoe trees when not in use to maintain shape',
+      'Condition with cream polish every 4–6 weeks'
     ],
     images: [
-      'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=1000&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=1000&auto=format&fit=crop'
+      'https://images.unsplash.com/photo-1614252235316-8c857d38b5f4?q=80&w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1533867617858-e7b97e060509?q=80&w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=1000&auto=format&fit=crop'
     ],
     isFeatured: true
   },
   {
-    id: 'minimal-cardholder',
-    name: 'The Minimalist Cardholder',
-    tagline: 'Ultralight 5-pocket card sleeve crafted from smooth Italian pull-up leather',
-    category: 'Wallets',
-    price: 1850,
-    originalPrice: 2200,
+    id: 'artisan-leather-loafers',
+    name: 'Artisan Penny Loafers',
+    tagline: 'Slip-on luxury loafers tailored for effortless smart-casual daily wear',
+    category: 'Shoes',
+    price: 4499,
+    originalPrice: 5299,
     rating: 4.8,
-    reviewCount: 110,
-    badge: 'Bestseller',
+    reviewCount: 39,
+    badge: 'New Arrival',
     leatherType: 'Top-Grain',
     colors: [
       {
-        name: 'Heritage Tan',
-        hex: '#c19a6b',
-        image: 'https://images.unsplash.com/photo-1606503829068-d0107297e68e?q=80&w=1000&auto=format&fit=crop'
+        name: 'Espresso Brown',
+        hex: '#3b2f2f',
+        image: 'https://images.unsplash.com/photo-1560343090-f0409e92791a?q=80&w=1000&auto=format&fit=crop'
       },
       {
-        name: 'Oxblood Burgundy',
-        hex: '#592329',
-        image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=1000&auto=format&fit=crop'
+        name: 'Heritage Tan',
+        hex: '#c19a6b',
+        image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=1000&auto=format&fit=crop'
       },
       {
         name: 'Midnight Black',
         hex: '#1a1a1a',
-        image: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=1000&auto=format&fit=crop'
+        image: 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?q=80&w=1000&auto=format&fit=crop'
       }
     ],
-    dimensions: '10 cm × 7 cm × 0.4 cm',
-    weight: '35 g',
-    hardware: 'None',
-    lining: 'Unlined leather interior',
-    description: 'Created for true minimalists. Features four outer card slots with angled easy-extraction curves and a central compartment for folded currency bills.',
+    sizes: ['UK 6 (EU 40)', 'UK 7 (EU 41)', 'UK 8 (EU 42)', 'UK 9 (EU 43)', 'UK 10 (EU 44)'],
+    dimensions: 'Standard Comfort Width',
+    weight: '690 g (pair)',
+    hardware: 'Reinforced hand-stitched saddle bridge',
+    lining: 'Soft glove-tanned leather inner lining',
+    description: 'Effortless slip-on style meets artisanal leather work. The moc-toe construction provides natural toe freedom, while the flexible stacked heel and padded footbed make it perfect for barefoot or sock wear.',
     features: [
-      'Holds 6-8 cards plus folded cash securely',
-      'Zero synthetic lining for lifelong durability',
-      'Waxed edge burnish in signature Proddatur atelier style'
+      'Classic penny strap cutout with hand-crimped apron seam',
+      'Cushioned arch support built into the inner sole',
+      'Flexible lightweight sole for natural stride flexibility',
+      'Waxed hand-stitched perimeter'
     ],
     craftsmanshipNotes: [
-      'Hand-stitched with durable bonded poly-core thread'
+      'Hand-stitched moccasin apron on shoe lasts'
     ],
     careInstructions: [
-      'Requires minimal maintenance; develops rich sheen naturally'
+      'Wipe with soft cloth; use neutral leather lotion'
     ],
     images: [
-      'https://images.unsplash.com/photo-1606503829068-d0107297e68e?q=80&w=1000&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=1000&auto=format&fit=crop'
+      'https://images.unsplash.com/photo-1560343090-f0409e92791a?q=80&w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=1000&auto=format&fit=crop'
     ],
     isFeatured: false
   },
   {
-    id: 'signature-tote',
-    name: 'The Artisan Signature Tote',
-    tagline: 'Spacious unstructured luxury tote with solid brass snap closure',
-    category: 'Bags',
-    price: 9999,
-    originalPrice: 11999,
+    id: 'proddatur-slide-slippers',
+    name: 'Proddatur Leather Slide Slippers',
+    tagline: 'Everyday slip-on leather slides with contoured cushioned footbed',
+    category: 'Slippers',
+    price: 1699,
+    originalPrice: 2199,
     rating: 4.9,
-    reviewCount: 89,
+    reviewCount: 62,
     badge: 'Bestseller',
-    leatherType: 'Full-Grain',
-    colors: [
-      {
-        name: 'Heritage Tan',
-        hex: '#c19a6b',
-        image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=1000&auto=format&fit=crop'
-      },
-      {
-        name: 'Espresso Brown',
-        hex: '#3b2f2f',
-        image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=1000&auto=format&fit=crop'
-      },
-      {
-        name: 'Midnight Black',
-        hex: '#1a1a1a',
-        image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=1000&auto=format&fit=crop'
-      }
-    ],
-    dimensions: '42 cm × 32 cm × 14 cm (Handle drop: 26 cm)',
-    weight: '890 g',
-    hardware: 'Solid Brass Magnetic Snaps & Key D-Ring',
-    lining: 'Natural Unlined Full-Grain Suede interior with zippered hanging pocket',
-    description: 'An effortless companion from morning boardroom meetings to weekend farmer markets. Large enough to house a 16-inch laptop, water bottle, planner, and daily essentials with graceful drape.',
-    features: [
-      'Generous 10.5" shoulder drop fits comfortably over winter coats',
-      'Removable interior zippered leather pouch for keys and phone',
-      'Solid brass interior key clip lanyard',
-      'Reinforced base with double-layer leather footing'
-    ],
-    craftsmanshipNotes: [
-      'Constructed with full single hide continuous gusset panels'
-    ],
-    careInstructions: [
-      'Condition when dry with natural beeswax balm'
-    ],
-    images: [
-      'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=1000&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=1000&auto=format&fit=crop'
-    ],
-    isFeatured: true
-  },
-  {
-    id: 'artisan-coaster-set',
-    name: 'Artisan Coaster Set (Pack of 6)',
-    tagline: 'Hand-stamped 5mm thick bridle leather tabletop coasters with holder',
-    category: 'Accessories',
-    price: 1499,
-    originalPrice: 1799,
-    rating: 4.8,
-    reviewCount: 43,
-    badge: 'New Arrival',
-    leatherType: 'Full-Grain',
-    colors: [
-      {
-        name: 'Heritage Tan',
-        hex: '#c19a6b',
-        image: 'https://images.unsplash.com/photo-1524498250077-390f9e378fc0?q=80&w=1000&auto=format&fit=crop'
-      },
-      {
-        name: 'Espresso Brown',
-        hex: '#3b2f2f',
-        image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=1000&auto=format&fit=crop'
-      }
-    ],
-    dimensions: '10 cm diameter × 0.5 cm thickness',
-    weight: '320 g (set)',
-    hardware: 'Solid brass riveted leather holder tray',
-    lining: 'Natural roughout non-slip underside',
-    description: 'Elevate your living room or study desk with this set of 6 thick bridle leather drink coasters. Water-resistant wax treatment protects against moisture rings while aging with character.',
-    features: [
-      'Includes dedicated matching leather tray with brass corner rivets',
-      'Naturally heat and moisture absorbent',
-      'Debossed with Althaf Leathers crest'
-    ],
-    craftsmanshipNotes: [
-      'Cut from heavy harness leather remnants to ensure zero hide waste'
-    ],
-    careInstructions: [
-      'Wipe dry with clean cloth after condensation exposure'
-    ],
-    images: [
-      'https://images.unsplash.com/photo-1524498250077-390f9e378fc0?q=80&w=1000&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=1000&auto=format&fit=crop'
-    ],
-    isFeatured: false
-  },
-  {
-    id: 'tech-organizer-roll',
-    name: 'Artisan Tech & Cable Roll',
-    tagline: 'Compact rollup organizer for chargers, stylus, power banks, and cords',
-    category: 'Accessories',
-    price: 2199,
-    originalPrice: 2600,
-    rating: 4.9,
-    reviewCount: 37,
-    badge: 'Atelier Signature',
     leatherType: 'Vegetable-Tanned',
     colors: [
       {
         name: 'Heritage Tan',
         hex: '#c19a6b',
-        image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=1000&auto=format&fit=crop'
+        image: 'https://images.unsplash.com/photo-1603808033192-082d6919d3e1?q=80&w=1000&auto=format&fit=crop'
       },
       {
         name: 'Espresso Brown',
         hex: '#3b2f2f',
-        image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=1000&auto=format&fit=crop'
+        image: 'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?q=80&w=1000&auto=format&fit=crop'
+      },
+      {
+        name: 'Midnight Black',
+        hex: '#1a1a1a',
+        image: 'https://images.unsplash.com/photo-1562273138-f46be4ebdf33?q=80&w=1000&auto=format&fit=crop'
       }
     ],
-    dimensions: '40 cm × 18 cm unrolled (Rolls to 8 cm diameter)',
-    weight: '190 g',
-    hardware: 'Brass stud and leather strap closure',
-    lining: 'Natural suede interior',
-    description: 'Keep your digital life organized in timeless analog leather. 5 elasticated loops hold cords securely, with a zippered pouch for USB dongles, SD cards, and earbuds.',
+    sizes: ['UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11'],
+    dimensions: 'Wide Ergonomic Comfort Fit',
+    weight: '380 g (pair)',
+    hardware: 'Brass accent rivets',
+    lining: 'Cushioned microfiber padded strap lining',
+    description: 'Designed for daily comfort in warm climates. Crafted from supple vegetable-tanned straps with padded underside that prevents chafing, over a contoured footbed that molds to your arch.',
     features: [
-      '5 versatile cable loops',
-      'Zippered stash pouch for small tech adapters',
-      'Adjustable wrap strap with brass prong collar'
+      'Wide supportive leather band with smooth burnished edges',
+      'Ergonomic footbed with heel cup and toe bar for natural grip',
+      'Flexible, high-traction rubber outsole for indoor and outdoor wear',
+      'Water-resistant treated footbed finish'
     ],
     craftsmanshipNotes: [
-      'Hand-stitched elastic webbing onto vegetable-tanned hide'
+      'Hand-assembled in our Proddatur workshop with reinforced side stitching'
     ],
     careInstructions: [
-      'Dust with soft horsehair brush'
+      'Wipe with a damp cloth; avoid complete soaking'
     ],
     images: [
-      'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=1000&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=1000&auto=format&fit=crop'
+      'https://images.unsplash.com/photo-1603808033192-082d6919d3e1?q=80&w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?q=80&w=1000&auto=format&fit=crop'
     ],
-    isFeatured: false
+    isFeatured: true
+  },
+  {
+    id: 'artisan-kolhapuri-slippers',
+    name: 'Artisan Leather Kolhapuri Slippers',
+    tagline: 'Hand-braided traditional toe-ring slippers with thick pressed leather sole',
+    category: 'Slippers',
+    price: 1999,
+    originalPrice: 2499,
+    rating: 4.8,
+    reviewCount: 45,
+    badge: 'Atelier Signature',
+    leatherType: 'Full-Grain',
+    colors: [
+      {
+        name: 'Heritage Tan',
+        hex: '#c19a6b',
+        image: 'https://images.unsplash.com/photo-1562273138-f46be4ebdf33?q=80&w=1000&auto=format&fit=crop'
+      },
+      {
+        name: 'Espresso Brown',
+        hex: '#3b2f2f',
+        image: 'https://images.unsplash.com/photo-1575537302964-96cd47c06b1b?q=80&w=1000&auto=format&fit=crop'
+      }
+    ],
+    sizes: ['UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10'],
+    dimensions: 'Traditional Regular Fit',
+    weight: '340 g (pair)',
+    hardware: 'Hand-braided leather cords and brass bead accents',
+    lining: 'Unlined pure buffalo hide bottom sole',
+    description: 'Traditional craftsmanship celebrating timeless Indian footwear. Hand-cut and braided with precision, these slippers soften with wear to create an unmatched bespoke fit that breathes naturally.',
+    features: [
+      'Hand-woven intricate lattice strap and comfortable toe ring',
+      'Multi-layer compacted leather sole with durable yellow stitching',
+      'Vegetable-tanned with tree barks for natural organic feel',
+      'Lightweight and naturally cooling for tropical climates'
+    ],
+    craftsmanshipNotes: [
+      'Each pair takes over 10 hours of hand braiding and hand stitching'
+    ],
+    careInstructions: [
+      'Apply coconut or castor oil periodically to maintain suppleness'
+    ],
+    images: [
+      'https://images.unsplash.com/photo-1562273138-f46be4ebdf33?q=80&w=1000&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1575537302964-96cd47c06b1b?q=80&w=1000&auto=format&fit=crop'
+    ],
+    isFeatured: true
   }
 ];
 
@@ -484,7 +448,7 @@ export const REVIEWS: Review[] = [
     rating: 5,
     date: '1 month ago',
     title: 'The patina development is gorgeous',
-    comment: 'Have been using the Classic Bifold Wallet for 3 months now. It has darkened into a rich warm honey shade and softened up beautifully. The monogram embossing was crisp and elegant.',
+    comment: 'Have been using the Classic Bifold Wallet for 3 months now. It has darkened into a rich warm honey shade and softened up beautifully. The edge creasing and finish was crisp and elegant.',
     verified: true,
     productName: 'Classic Bifold Wallet'
   },

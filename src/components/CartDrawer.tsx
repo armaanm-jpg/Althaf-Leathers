@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Trash2, Plus, Minus, ShoppingBag, ShieldCheck, Tag, ArrowRight, Sparkles } from 'lucide-react';
+import { X, Trash2, Plus, Minus, ShoppingBag, ShieldCheck, Tag, ArrowRight, Sparkles, MessageCircle } from 'lucide-react';
 import { CartItem } from '../types';
 import { formatINR } from '../utils/format';
 
@@ -163,11 +163,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         {item.selectedSize && (
                           <p>Size: <span className="font-medium text-[#231f1c]">{item.selectedSize}</span></p>
                         )}
-                        {item.monogram && (
-                          <p className="text-[#8b4513] font-medium">
-                            Monogram: "{item.monogram}"
-                          </p>
-                        )}
                       </div>
                     </div>
 
@@ -278,15 +273,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               <button
                 id="cart-checkout-btn"
                 onClick={handleCheckoutClick}
-                className="w-full py-3.5 bg-[#8b4513] hover:bg-[#72370e] text-white rounded-xl font-semibold tracking-wide shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3.5 bg-[#25D366] hover:bg-[#1faa4b] text-white rounded-xl font-bold text-sm tracking-wide shadow-md transition flex items-center justify-center gap-2.5 cursor-pointer"
               >
-                Proceed to Checkout • {formatINR(finalTotal)}
-                <ArrowRight className="w-4 h-4" />
+                <MessageCircle className="w-4 h-4" />
+                Proceed to WhatsApp Checkout • {formatINR(finalTotal)}
               </button>
 
               <div className="flex items-center justify-center gap-2 text-[11px] text-[#8c7b6d]">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#8b4513]" />
-                <span>Handcrafted in Proddatur • 100% Secure Checkout</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-[#25D366]" />
+                <span>Direct artisan WhatsApp chat • Handcrafted in Proddatur</span>
               </div>
             </div>
           )}

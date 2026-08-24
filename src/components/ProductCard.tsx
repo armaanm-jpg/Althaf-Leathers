@@ -96,12 +96,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
         </button>
 
-        {/* Quick View Hover Trigger */}
-        <div className="absolute inset-x-3 bottom-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex gap-2 z-10">
+        {/* Quick View & Add on Desktop (Hover) */}
+        <div className="hidden lg:flex absolute inset-x-3 bottom-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 gap-2 z-10">
           <button
             id={`quick-view-btn-${product.id}`}
             onClick={handleQuickViewClick}
-            className="flex-1 py-2.5 px-3 bg-white/95 text-[#231f1c] hover:bg-[#231f1c] hover:text-white rounded-lg text-xs font-semibold tracking-wide shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer backdrop-blur-sm"
+            className="flex-1 py-2.5 px-3 bg-white/95 text-[#231f1c] hover:bg-[#231f1c] hover:text-white rounded-xl text-xs font-semibold tracking-wide shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer backdrop-blur-sm"
           >
             <Eye className="w-3.5 h-3.5" /> Quick View
           </button>
@@ -109,7 +109,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <button
             id={`quick-add-btn-${product.id}`}
             onClick={handleQuickAdd}
-            className={`p-2.5 rounded-lg text-xs font-semibold shadow-md transition flex items-center justify-center cursor-pointer ${
+            className={`p-2.5 rounded-xl text-xs font-semibold shadow-md transition flex items-center justify-center cursor-pointer ${
               justAdded
                 ? 'bg-[#2b6b3e] text-white'
                 : 'bg-[#231f1c] text-white hover:bg-[#8b4513]'
@@ -123,30 +123,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       </div>
 
       {/* Card Body */}
-      <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div className="p-3 sm:p-4 md:p-5 flex-1 flex flex-col justify-between">
         <div>
           {/* Category & Rating */}
-          <div className="flex items-center justify-between text-xs text-[#8c7b6d] mb-1.5">
-            <span className="uppercase tracking-wider font-semibold text-[#8b4513]">
+          <div className="flex items-center justify-between text-[11px] sm:text-xs text-[#8c7b6d] mb-1">
+            <span className="uppercase tracking-wider font-semibold text-[#8b4513] truncate max-w-[65%]">
               {product.category}
             </span>
-            <div className="flex items-center gap-1">
-              <Star className="w-3.5 h-3.5 fill-[#c19a6b] text-[#c19a6b]" />
-              <span className="font-semibold text-[#231f1c]">{product.rating}</span>
-              <span className="text-[11px]">({product.reviewCount})</span>
+            <div className="flex items-center gap-1 shrink-0">
+              <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5 fill-[#c19a6b] text-[#c19a6b]" />
+              <span className="font-semibold text-[#231f1c] text-xs">{product.rating}</span>
+              <span className="text-[10px] sm:text-[11px] hidden sm:inline">({product.reviewCount})</span>
             </div>
           </div>
 
           {/* Product Title */}
           <h3
             onClick={() => onSelectProduct(product)}
-            className="font-serif text-base sm:text-lg font-bold text-[#1a1614] group-hover:text-[#8b4513] transition cursor-pointer line-clamp-1 mb-1"
+            className="font-serif text-sm sm:text-base md:text-lg font-bold text-[#1a1614] group-hover:text-[#8b4513] transition cursor-pointer line-clamp-1 mb-1"
           >
             {product.name}
           </h3>
 
           {/* Tagline / Subtitle */}
-          <p className="text-xs text-[#6b5f54] line-clamp-1 mb-3">
+          <p className="text-[11px] sm:text-xs text-[#6b5f54] line-clamp-1 mb-2.5">
             {product.tagline}
           </p>
         </div>
@@ -154,7 +154,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div>
           {/* Color Swatches */}
           {product.colors.length > 1 && (
-            <div className="flex items-center gap-1.5 mb-3">
+            <div className="flex items-center gap-1.5 mb-2.5 overflow-x-auto py-0.5">
               {product.colors.map((color, idx) => (
                 <button
                   key={color.name}
@@ -163,7 +163,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                     e.stopPropagation();
                     setSelectedColorIdx(idx);
                   }}
-                  className={`w-4 h-4 rounded-full border transition-all cursor-pointer ${
+                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border transition-all cursor-pointer shrink-0 ${
                     selectedColorIdx === idx
                       ? 'ring-2 ring-[#8b4513] ring-offset-1 scale-110 border-white'
                       : 'border-black/20 hover:scale-105'
@@ -173,27 +173,55 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   aria-label={color.name}
                 />
               ))}
-              <span className="text-[10px] text-[#8c7b6d] ml-1">
+              <span className="text-[10px] text-[#8c7b6d] ml-1 truncate hidden sm:inline">
                 {currentColor.name}
               </span>
             </div>
           )}
 
-          {/* Pricing */}
-          <div className="pt-2 border-t border-[#f0e9df] flex items-center justify-between">
-            <div className="flex items-baseline gap-2">
-              <span className="font-serif text-base sm:text-lg font-bold text-[#1a1614]">
-                {formatINR(product.price)}
-              </span>
-              {product.originalPrice && product.originalPrice > product.price && (
-                <span className="text-xs text-[#9c8e82] line-through">
-                  {formatINR(product.originalPrice)}
+          {/* Pricing & Mobile Quick-Add Button */}
+          <div className="pt-2 border-t border-[#f0e9df] flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="font-serif text-sm sm:text-base md:text-lg font-bold text-[#1a1614]">
+                  {formatINR(product.price)}
                 </span>
-              )}
+                {product.originalPrice && product.originalPrice > product.price && (
+                  <span className="text-[10px] sm:text-xs text-[#9c8e82] line-through">
+                    {formatINR(product.originalPrice)}
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] sm:text-[11px] text-[#8c7b6d] font-medium block truncate">
+                {product.leatherType}
+              </span>
             </div>
-            <span className="text-[11px] text-[#8c7b6d] font-medium">
-              {product.leatherType}
-            </span>
+
+            {/* Mobile Direct Add to Bag Icon Button */}
+            <div className="lg:hidden flex items-center gap-1">
+              <button
+                id={`mobile-quick-view-${product.id}`}
+                onClick={handleQuickViewClick}
+                className="p-2 bg-[#f4eee5] text-[#3a332d] rounded-lg transition active:scale-95"
+                title="Quick View"
+                aria-label="Quick View"
+              >
+                <Eye className="w-3.5 h-3.5" />
+              </button>
+              <button
+                id={`mobile-quick-add-${product.id}`}
+                onClick={handleQuickAdd}
+                className={`p-2 rounded-lg text-xs font-semibold shadow-xs transition active:scale-95 flex items-center justify-center ${
+                  justAdded
+                    ? 'bg-[#2b6b3e] text-white'
+                    : 'bg-[#231f1c] text-white'
+                }`}
+                title="Add to Bag"
+                aria-label="Add to Bag"
+              >
+                {justAdded ? <Check className="w-3.5 h-3.5" /> : <ShoppingBag className="w-3.5 h-3.5" />}
+              </button>
+            </div>
           </div>
         </div>
       </div>

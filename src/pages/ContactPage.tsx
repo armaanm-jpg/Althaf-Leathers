@@ -48,8 +48,8 @@ export const ContactPage: React.FC = () => {
       a: 'All our products are 100% handcrafted in our dedicated artisan workshop located on Gandhi Road in Proddatur, Kadapa District, Andhra Pradesh. We do not outsource production or use automated assembly lines.'
     },
     {
-      q: 'How does the Complimentary Monogramming service work?',
-      a: 'We offer free blind debossing or gold foil hot-stamping on all leather bags, folios, and wallets. You can input up to 3 custom initials (e.g. "A.L.") on the product page before adding to your bag.'
+      q: 'How do I care for my vegetable-tanned leather product?',
+      a: 'Vegetable-tanned leather develops a beautiful patina over time. Keep it away from prolonged direct water exposure. If wet, wipe with a dry cloth and allow to air dry naturally. Apply natural beeswax leather balm once or twice a year.'
     },
     {
       q: 'What is included in the Lifetime Stitch Guarantee?',
@@ -77,7 +77,7 @@ export const ContactPage: React.FC = () => {
           Get in Touch with Our Atelier
         </h1>
         <p className="text-sm sm:text-base text-[#6b5f54] leading-relaxed">
-          Whether you have questions about hide patina, custom monograms, or corporate bulk gifting, our team in Proddatur is here to assist.
+          Whether you have questions about hide selection, leather care, or corporate bulk orders, our team in Proddatur is here to assist.
         </p>
       </div>
 
@@ -222,7 +222,7 @@ export const ContactPage: React.FC = () => {
               <div className="flex items-start gap-3.5">
                 <Phone className="w-5 h-5 text-[#c19a6b] shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold text-white">+91 98765 43210 / +91 8564 250112</p>
+                  <p className="font-bold text-white">+91 82476 77511</p>
                   <p className="text-[#a89b8d]">Direct Atelier Phone & WhatsApp Support</p>
                 </div>
               </div>

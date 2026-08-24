@@ -91,7 +91,7 @@ export const Footer: React.FC<FooterProps> = ({ setActivePage, setSelectedCatego
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-[#c19a6b] shrink-0" />
-                <span>+91 98765 43210 / +91 8564 250112</span>
+                <span>+91 82476 77511</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-[#c19a6b] shrink-0" />
@@ -108,45 +108,45 @@ export const Footer: React.FC<FooterProps> = ({ setActivePage, setSelectedCatego
                 <button
                   id="footer-link-bags"
                   onClick={() => handleNav('shop', 'Bags')}
-                  className="text-[#a89b8d] hover:text-[#f5efe6] transition"
+                  className="text-[#a89b8d] hover:text-[#f5efe6] transition cursor-pointer"
                 >
-                  Leather Satchels & Bags
+                  Leather Bags
                 </button>
               </li>
               <li>
                 <button
                   id="footer-link-wallets"
                   onClick={() => handleNav('shop', 'Wallets')}
-                  className="text-[#a89b8d] hover:text-[#f5efe6] transition"
+                  className="text-[#a89b8d] hover:text-[#f5efe6] transition cursor-pointer"
                 >
-                  Bifold & Card Wallets
+                  Bifold Wallets
                 </button>
               </li>
               <li>
                 <button
                   id="footer-link-belts"
                   onClick={() => handleNav('shop', 'Belts')}
-                  className="text-[#a89b8d] hover:text-[#f5efe6] transition"
+                  className="text-[#a89b8d] hover:text-[#f5efe6] transition cursor-pointer"
                 >
-                  Bridle Leather Belts
+                  Bridle Belts
                 </button>
               </li>
               <li>
                 <button
-                  id="footer-link-folios"
-                  onClick={() => handleNav('shop', 'Folios')}
-                  className="text-[#a89b8d] hover:text-[#f5efe6] transition"
+                  id="footer-link-shoes"
+                  onClick={() => handleNav('shop', 'Shoes')}
+                  className="text-[#a89b8d] hover:text-[#f5efe6] transition cursor-pointer"
                 >
-                  Executive Folios
+                  Leather Shoes
                 </button>
               </li>
               <li>
                 <button
-                  id="footer-link-accessories"
-                  onClick={() => handleNav('shop', 'Accessories')}
-                  className="text-[#a89b8d] hover:text-[#f5efe6] transition"
+                  id="footer-link-slippers"
+                  onClick={() => handleNav('shop', 'Slippers')}
+                  className="text-[#a89b8d] hover:text-[#f5efe6] transition cursor-pointer"
                 >
-                  Small Accessories
+                  Leather Slippers
                 </button>
               </li>
             </ul>
@@ -160,7 +160,7 @@ export const Footer: React.FC<FooterProps> = ({ setActivePage, setSelectedCatego
                 <button
                   id="footer-link-story"
                   onClick={() => handleNav('story')}
-                  className="text-[#a89b8d] hover:text-[#f5efe6] transition"
+                  className="text-[#a89b8d] hover:text-[#f5efe6] transition cursor-pointer"
                 >
                   Our Heritage & Story
                 </button>
@@ -169,7 +169,7 @@ export const Footer: React.FC<FooterProps> = ({ setActivePage, setSelectedCatego
                 <button
                   id="footer-link-craftsmanship"
                   onClick={() => handleNav('story')}
-                  className="text-[#a89b8d] hover:text-[#f5efe6] transition"
+                  className="text-[#a89b8d] hover:text-[#f5efe6] transition cursor-pointer"
                 >
                   Vegetable Tanning & Craft
                 </button>
@@ -178,18 +178,9 @@ export const Footer: React.FC<FooterProps> = ({ setActivePage, setSelectedCatego
                 <button
                   id="footer-link-contact"
                   onClick={() => handleNav('contact')}
-                  className="text-[#a89b8d] hover:text-[#f5efe6] transition"
+                  className="text-[#a89b8d] hover:text-[#f5efe6] transition cursor-pointer"
                 >
                   Visit the Workshop
-                </button>
-              </li>
-              <li>
-                <button
-                  id="footer-link-bulk"
-                  onClick={() => handleNav('contact')}
-                  className="text-[#a89b8d] hover:text-[#f5efe6] transition"
-                >
-                  Bespoke & Bulk Orders
                 </button>
               </li>
             </ul>

@@ -1,12 +1,14 @@
 import React from 'react';
 import { ArrowRight, Sparkles, Shield, Award, CheckCircle2, ChevronRight, Star } from 'lucide-react';
-import { Product, ProductCategory } from '../types';
+import { Product, ProductCategory, HomePageConfig, CategoryMeta } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { REVIEWS } from '../data/products';
 import { formatINR } from '../utils/format';
+import { DEFAULT_CATEGORIES } from '../data/categories';
 
 interface HomePageProps {
   products: Product[];
+  homeConfig?: HomePageConfig;
   onSelectProduct: (product: Product) => void;
   onQuickView: (product: Product) => void;
   onAddToCart: (product: Product, colorName: string, size?: string) => void;
@@ -15,10 +17,12 @@ interface HomePageProps {
   onNavigateToShop: (category?: ProductCategory) => void;
   onNavigateToStory: () => void;
   onOpenBulkModal: (product?: Product) => void;
+  categories?: CategoryMeta[];
 }
 
 export const HomePage: React.FC<HomePageProps> = ({
   products,
+  homeConfig,
   onSelectProduct,
   onQuickView,
   onAddToCart,
@@ -27,46 +31,38 @@ export const HomePage: React.FC<HomePageProps> = ({
   onNavigateToShop,
   onNavigateToStory,
   onOpenBulkModal,
+  categories = DEFAULT_CATEGORIES,
 }) => {
-  const satchel = products.find((p) => p.id === 'heritage-satchel') || products[0];
-  const bifold = products.find((p) => p.id === 'classic-bifold-wallet');
-  const belt = products.find((p) => p.id === 'artisan-dress-belt');
-  const duffel = products.find((p) => p.id === 'weekender-duffel');
-  const folio = products.find((p) => p.id === 'traveler-folio');
-  const tote = products.find((p) => p.id === 'signature-tote');
+  const heroProduct =
+    (homeConfig?.heroProductId ? products.find((p) => p.id === homeConfig.heroProductId) : null) ||
+    products.find((p) => p.id === 'heritage-satchel') ||
+    products[0];
 
-  const categories = [
-    {
-      name: 'Leather Bags' as ProductCategory,
-      cat: 'Bags' as ProductCategory,
-      count: 'Satchels, Totes & Duffels',
-      image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=600&auto=format&fit=crop',
-    },
-    {
-      name: 'Bifold Wallets' as ProductCategory,
-      cat: 'Wallets' as ProductCategory,
-      count: 'Slim Bifolds & Cardholders',
-      image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?q=80&w=600&auto=format&fit=crop',
-    },
-    {
-      name: 'Bridle Belts' as ProductCategory,
-      cat: 'Belts' as ProductCategory,
-      count: '4mm Solid Steerhide',
-      image: 'https://images.unsplash.com/photo-1624222247344-550fb60583dc?q=80&w=600&auto=format&fit=crop',
-    },
-    {
-      name: 'Tech & Folios' as ProductCategory,
-      cat: 'Folios' as ProductCategory,
-      count: 'A4 & Padfolio Sleeves',
-      image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=600&auto=format&fit=crop',
-    },
-    {
-      name: 'Small Accessories' as ProductCategory,
-      cat: 'Accessories' as ProductCategory,
-      count: 'Coasters & Organizer Rolls',
-      image: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?q=80&w=600&auto=format&fit=crop',
-    },
-  ];
+  const secondaryProduct =
+    (homeConfig?.bentoSecondaryId ? products.find((p) => p.id === homeConfig.bentoSecondaryId) : null) ||
+    products.find((p) => p.id === 'classic-bifold-wallet') ||
+    products[1] ||
+    heroProduct;
+
+  const featuredList: Product[] = React.useMemo(() => {
+    if (homeConfig && homeConfig.featuredProductIds && homeConfig.featuredProductIds.length > 0) {
+      const list = homeConfig.featuredProductIds
+        .map((id) => products.find((p) => p.id === id))
+        .filter((p): p is Product => Boolean(p));
+      if (list.length > 0) return list;
+    }
+    const defaultFeatured = products.filter((p) => p.isFeatured);
+    return defaultFeatured.length > 0 ? defaultFeatured : products.slice(0, 6);
+  }, [products, homeConfig]);
+
+  const exploreCategories = React.useMemo(() => {
+    return categories.map((cat) => ({
+      name: cat.name,
+      cat: cat.id,
+      count: cat.tagline || `${products.filter((p) => p.category === cat.id).length} pieces`,
+      image: cat.image || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=600&auto=format&fit=crop',
+    }));
+  }, [categories, products]);
 
   return (
     <div className="space-y-16 sm:space-y-24 pb-16">
@@ -160,87 +156,88 @@ export const HomePage: React.FC<HomePageProps> = ({
         {/* Bento Grid layout */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
-          {/* Main Large Hero Feature: The Heritage Satchel */}
-          <div 
-            id="bento-heritage-satchel"
-            onClick={() => onSelectProduct(satchel)}
-            className="group md:col-span-2 relative bg-white rounded-2xl border border-[#e8dfd3] hover:border-[#c19a6b] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer"
-          >
-            <div className="relative aspect-4/3 sm:aspect-16/9 w-full bg-[#f4eee5] overflow-hidden">
-              <img
-                src={satchel.images[0]}
-                alt={satchel.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute top-4 left-4 flex gap-2">
-                <span className="px-3 py-1 bg-[#231f1c] text-[#f5efe6] text-xs uppercase font-bold tracking-wider rounded-md shadow-sm">
-                  Signature Bestseller
-                </span>
-                <span className="px-2.5 py-1 bg-[#8b4513] text-white text-xs font-bold rounded-md shadow-sm">
-                  Full-Grain
-                </span>
+          {/* Main Large Hero Feature */}
+          {heroProduct && (
+            <div 
+              id="bento-hero-product"
+              onClick={() => onSelectProduct(heroProduct)}
+              className="group md:col-span-2 relative bg-white rounded-2xl border border-[#e8dfd3] hover:border-[#c19a6b] overflow-hidden shadow-xs hover:shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer"
+            >
+              <div className="relative aspect-4/3 sm:aspect-16/9 w-full bg-[#f4eee5] overflow-hidden">
+                <img
+                  src={heroProduct.images[0]}
+                  alt={heroProduct.name}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute top-4 left-4 flex gap-2">
+                  <span className="px-3 py-1 bg-[#231f1c] text-[#f5efe6] text-xs uppercase font-bold tracking-wider rounded-md shadow-xs">
+                    {heroProduct.badge || 'Signature Bestseller'}
+                  </span>
+                  <span className="px-2.5 py-1 bg-[#8b4513] text-white text-xs font-bold rounded-md shadow-xs">
+                    {heroProduct.leatherType}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white">
+                <div>
+                  <span className="text-xs uppercase tracking-wider font-semibold text-[#8b4513]">
+                    {heroProduct.category}
+                  </span>
+                  <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#1a1614] group-hover:text-[#8b4513] transition">
+                    {heroProduct.name}
+                  </h3>
+                  <p className="text-sm text-[#6b5f54] mt-1 max-w-md">
+                    {heroProduct.tagline}
+                  </p>
+                </div>
+
+                <div className="flex sm:flex-col items-center sm:items-end justify-between gap-3">
+                  <span className="font-serif text-2xl font-bold text-[#1a1614]">
+                    {formatINR(heroProduct.price)}
+                  </span>
+                  <button
+                    id="bento-hero-quickview-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onQuickView(heroProduct);
+                    }}
+                    className="px-5 py-2.5 bg-[#231f1c] hover:bg-[#8b4513] text-white text-xs font-bold rounded-xl transition cursor-pointer"
+                  >
+                    Quick View
+                  </button>
+                </div>
               </div>
             </div>
+          )}
 
-            <div className="p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white">
-              <div>
-                <span className="text-xs uppercase tracking-wider font-semibold text-[#8b4513]">
-                  Handcrafted Satchel
-                </span>
-                <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#1a1614] group-hover:text-[#8b4513] transition">
-                  {satchel.name}
-                </h3>
-                <p className="text-sm text-[#6b5f54] mt-1 max-w-md">
-                  {satchel.tagline} • Fits 15" laptop with solid antiqued brass hardware.
-                </p>
-              </div>
-
-              <div className="flex sm:flex-col items-center sm:items-end justify-between gap-3">
-                <span className="font-serif text-2xl font-bold text-[#1a1614]">
-                  {formatINR(satchel.price)}
-                </span>
-                <button
-                  id="bento-satchel-quickview-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onQuickView(satchel);
-                  }}
-                  className="px-5 py-2.5 bg-[#231f1c] hover:bg-[#8b4513] text-white text-xs font-bold rounded-xl transition cursor-pointer"
-                >
-                  Quick View
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Bento Column: Wallet & Editorial Card */}
+          {/* Right Bento Column: Secondary Item & Editorial Card */}
           <div className="space-y-6 flex flex-col justify-between">
-            {/* Classic Bifold */}
-            {bifold && (
+            {secondaryProduct && (
               <div
-                id="bento-bifold-wallet"
-                onClick={() => onSelectProduct(bifold)}
-                className="group bg-white rounded-2xl border border-[#e8dfd3] hover:border-[#c19a6b] p-5 shadow-sm hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between"
+                id="bento-secondary-product"
+                onClick={() => onSelectProduct(secondaryProduct)}
+                className="group bg-white rounded-2xl border border-[#e8dfd3] hover:border-[#c19a6b] p-5 shadow-xs hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between"
               >
                 <div className="relative aspect-16/10 rounded-xl overflow-hidden bg-[#f4eee5] mb-4">
                   <img
-                    src={bifold.images[0]}
-                    alt={bifold.name}
+                    src={secondaryProduct.images[0]}
+                    alt={secondaryProduct.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <span className="absolute top-3 left-3 px-2 py-0.5 bg-[#231f1c] text-white text-[10px] uppercase font-bold tracking-wider rounded">
-                    New Arrival
+                    {secondaryProduct.badge || 'Featured'}
                   </span>
                 </div>
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] uppercase font-semibold text-[#8b4513]">Wallets</span>
-                    <span className="font-serif text-lg font-bold text-[#1a1614]">{formatINR(bifold.price)}</span>
+                    <span className="text-[11px] uppercase font-semibold text-[#8b4513]">{secondaryProduct.category}</span>
+                    <span className="font-serif text-lg font-bold text-[#1a1614]">{formatINR(secondaryProduct.price)}</span>
                   </div>
                   <h4 className="font-serif text-lg font-bold text-[#1a1614] group-hover:text-[#8b4513] transition">
-                    {bifold.name}
+                    {secondaryProduct.name}
                   </h4>
-                  <p className="text-xs text-[#6b5f54] line-clamp-1 mt-0.5">{bifold.tagline}</p>
+                  <p className="text-xs text-[#6b5f54] line-clamp-1 mt-0.5">{secondaryProduct.tagline}</p>
                 </div>
               </div>
             )}
@@ -255,7 +252,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                   Vegetable Tanned for Patina & Character
                 </h4>
                 <p className="text-xs text-[#b8ab9d] leading-relaxed">
-                  We use tree barks and natural tannins. As you carry your piece through sunshine and rain, it records your personal journey.
+                  We use tree barks and natural tannins. As you carry your piece through daily routine, it records your personal journey.
                 </p>
               </div>
               <button
@@ -270,38 +267,26 @@ export const HomePage: React.FC<HomePageProps> = ({
 
         </div>
 
-        {/* Second Row of Featured Products */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-          {belt && (
-            <ProductCard
-              product={belt}
-              onSelectProduct={onSelectProduct}
-              onQuickView={onQuickView}
-              onAddToCart={onAddToCart}
-              isWishlisted={wishlistIds.includes(belt.id)}
-              onToggleWishlist={onToggleWishlist}
-            />
-          )}
-          {duffel && (
-            <ProductCard
-              product={duffel}
-              onSelectProduct={onSelectProduct}
-              onQuickView={onQuickView}
-              onAddToCart={onAddToCart}
-              isWishlisted={wishlistIds.includes(duffel.id)}
-              onToggleWishlist={onToggleWishlist}
-            />
-          )}
-          {folio && (
-            <ProductCard
-              product={folio}
-              onSelectProduct={onSelectProduct}
-              onQuickView={onQuickView}
-              onAddToCart={onAddToCart}
-              isWishlisted={wishlistIds.includes(folio.id)}
-              onToggleWishlist={onToggleWishlist}
-            />
-          )}
+        {/* Dynamic Featured Products Grid */}
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-serif text-xl font-bold text-[#1a1614]">Featured Workshop Collection</h3>
+            <span className="text-xs text-[#8c7b6d]">{featuredList.length} items on display</span>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
+            {featuredList.map((prod) => (
+              <ProductCard
+                key={prod.id}
+                product={prod}
+                onSelectProduct={onSelectProduct}
+                onQuickView={onQuickView}
+                onAddToCart={onAddToCart}
+                isWishlisted={wishlistIds.includes(prod.id)}
+                onToggleWishlist={onToggleWishlist}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -321,7 +306,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
-            {categories.map((c) => (
+            {exploreCategories.map((c) => (
               <div
                 key={c.name}
                 id={`cat-card-${c.cat.toLowerCase()}`}
@@ -400,7 +385,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                 </button>
                 <button
                   id="atelier-bulk-btn"
-                  onClick={() => onOpenBulkModal(satchel)}
+                  onClick={() => onOpenBulkModal(heroProduct)}
                   className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-[#faf8f5] rounded-xl font-semibold text-xs tracking-wider uppercase border border-white/20 transition cursor-pointer"
                 >
                   Corporate & Bulk Gifting

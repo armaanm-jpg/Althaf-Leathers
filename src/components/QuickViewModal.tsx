@@ -6,7 +6,7 @@ import { formatINR, calculateDiscount } from '../utils/format';
 interface QuickViewModalProps {
   product: Product | null;
   onClose: () => void;
-  onAddToCart: (product: Product, colorName: string, size?: string, monogram?: string, qty?: number) => void;
+  onAddToCart: (product: Product, colorName: string, size?: string, quantity?: number) => void;
   onViewFullDetails: (product: Product) => void;
 }
 
@@ -20,7 +20,6 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({
 
   const [selectedColorIdx, setSelectedColorIdx] = useState(0);
   const [selectedSize, setSelectedSize] = useState(product.sizes ? product.sizes[0] : '');
-  const [monogram, setMonogram] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
   const [addedSuccess, setAddedSuccess] = useState(false);
@@ -29,7 +28,7 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({
   const discount = calculateDiscount(product.originalPrice || 0, product.price);
 
   const handleAdd = () => {
-    onAddToCart(product, currentColor.name, selectedSize || undefined, monogram || undefined, quantity);
+    onAddToCart(product, currentColor.name, selectedSize || undefined, quantity);
     setAddedSuccess(true);
     setTimeout(() => {
       setAddedSuccess(false);
@@ -184,25 +183,6 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({
                   </div>
                 </div>
               )}
-
-              {/* Complimentary Monogramming Input */}
-              <div className="mb-5 p-3 bg-[#f2ece2] rounded-xl border border-[#ded4c6]">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="font-semibold text-[#231f1c] flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 text-[#c19a6b]" /> Complimentary Monogram
-                  </span>
-                  <span className="text-[10px] text-[#8c7b6d]">Max 3 letters</span>
-                </div>
-                <input
-                  id="quickview-monogram-input"
-                  type="text"
-                  maxLength={3}
-                  value={monogram}
-                  onChange={(e) => setMonogram(e.target.value.toUpperCase())}
-                  placeholder="e.g. AL"
-                  className="w-full bg-white border border-[#d8ccbe] rounded-md px-2.5 py-1.5 text-xs uppercase tracking-widest text-[#1a1614] placeholder-[#9c8e82] focus:outline-none focus:border-[#8b4513]"
-                />
-              </div>
             </div>
 
             {/* Actions */}

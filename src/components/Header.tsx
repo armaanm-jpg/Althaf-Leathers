@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, ShoppingBag, Heart, Menu, X, ShieldCheck, Sparkles, MapPin, ChevronDown, Wallet, Layers, ArrowRight } from 'lucide-react';
-import { ActivePage, ProductCategory } from '../types';
+import { Search, ShoppingBag, Heart, Menu, X, ShieldCheck, Sparkles, MapPin, ChevronDown, Wallet, Layers, ArrowRight, Sliders, Footprints, Tag, Building2 } from 'lucide-react';
+import { ActivePage, ProductCategory, CategoryMeta, HomePageConfig } from '../types';
+import { DEFAULT_CATEGORIES } from '../data/categories';
 
 interface HeaderProps {
   activePage: ActivePage;
@@ -12,6 +13,9 @@ interface HeaderProps {
   onOpenCart: () => void;
   onOpenWishlist: () => void;
   onOpenSearch: () => void;
+  onOpenBulkModal: () => void;
+  categories?: CategoryMeta[];
+  homeConfig?: HomePageConfig;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -23,11 +27,17 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenCart,
   onOpenWishlist,
   onOpenSearch,
+  onOpenBulkModal,
+  categories = DEFAULT_CATEGORIES,
+  homeConfig,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [collectionsDropdownOpen, setCollectionsDropdownOpen] = useState(false);
-  const [mobileCollectionsOpen, setMobileCollectionsOpen] = useState(true);
   const dropdownTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const announcementText = homeConfig?.announcementText || 'NEW IN 2026 • EVERYDAY LEATHER ESSENTIALS FOR DAILY USE';
+  const announcementLocation = homeConfig?.announcementLocation || 'PRODDATUR WORKSHOP';
+  const announcementBadge = homeConfig?.announcementBadge || 'SIMPLE & HONEST VALUE';
 
   const handleMouseEnter = () => {
     if (dropdownTimerRef.current) {
@@ -60,21 +70,38 @@ export const Header: React.FC<HeaderProps> = ({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const getCategoryIcon = (id: string) => {
+    const lower = id.toLowerCase();
+    if (lower.includes('bag') || lower.includes('tote') || lower.includes('satchel')) {
+      return <ShoppingBag className="w-4 h-4" />;
+    }
+    if (lower.includes('wallet') || lower.includes('card') || lower.includes('money')) {
+      return <Wallet className="w-4 h-4" />;
+    }
+    if (lower.includes('belt') || lower.includes('strap')) {
+      return <Layers className="w-4 h-4" />;
+    }
+    if (lower.includes('shoe') || lower.includes('boot') || lower.includes('slipper') || lower.includes('footwear')) {
+      return <Footprints className="w-4 h-4" />;
+    }
+    return <Tag className="w-4 h-4" />;
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-[#faf8f5]/95 backdrop-blur-md border-b border-[#e8e0d5] transition-all">
       {/* Top Announcement Bar */}
-      <div className="bg-[#231f1c] text-[#e8dfd5] text-xs font-medium py-2 px-4 text-center tracking-widest uppercase flex items-center justify-center gap-2 sm:gap-4 overflow-hidden">
-        <span className="hidden sm:inline-flex items-center gap-1.5 text-[#c19a6b]">
-          <MapPin className="w-3.5 h-3.5" /> PRODDATUR WORKSHOP
+      <div className="bg-[#231f1c] text-[#e8dfd5] py-1.5 sm:py-2 px-3 sm:px-4 text-center uppercase flex items-center justify-center gap-2 sm:gap-4 overflow-hidden">
+        <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-[#c19a6b] font-medium tracking-widest shrink-0">
+          <MapPin className="w-3.5 h-3.5" /> {announcementLocation}
         </span>
         <span className="hidden sm:inline text-[#7a7268]">|</span>
-        <span className="flex items-center gap-1.5">
-          <Sparkles className="w-3.5 h-3.5 text-[#c19a6b]" />
-          NEW IN 2026 • EVERYDAY LEATHER ESSENTIALS FOR DAILY USE
+        <span className="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs font-semibold sm:font-medium tracking-wider sm:tracking-widest text-[#f5efe6] truncate max-w-full">
+          <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-[#c19a6b] shrink-0" />
+          <span className="truncate">{announcementText}</span>
         </span>
         <span className="hidden md:inline text-[#7a7268]">|</span>
-        <span className="hidden md:inline-flex items-center gap-1.5 text-[#d8c8b4]">
-          <ShieldCheck className="w-3.5 h-3.5 text-[#c19a6b]" /> SIMPLE & HONEST VALUE
+        <span className="hidden md:inline-flex items-center gap-1.5 text-xs text-[#d8c8b4] font-medium tracking-widest shrink-0">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#c19a6b]" /> {announcementBadge}
         </span>
       </div>
 
@@ -111,7 +138,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center space-x-7">
             <button
               id="nav-home-btn"
               onClick={() => handleNavClick('home')}
@@ -124,7 +151,7 @@ export const Header: React.FC<HeaderProps> = ({
               Home
             </button>
 
-            {/* Collections with Dropdown (Bags, Wallets, Belts inside) */}
+            {/* Collections with Dropdown (Bags, Wallets, Belts, Shoes, Slippers inside) */}
             <div
               className="relative"
               onMouseEnter={handleMouseEnter}
@@ -150,7 +177,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Collections Dropdown Menu */}
               {collectionsDropdownOpen && (
                 <div
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 w-80 bg-white rounded-2xl shadow-xl border border-[#e8dfd3] p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-1.5 w-84 bg-white rounded-2xl shadow-xl border border-[#e8dfd3] p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
                   onMouseEnter={handleMouseEnter}
                   onMouseLeave={handleMouseLeave}
                 >
@@ -167,90 +194,32 @@ export const Header: React.FC<HeaderProps> = ({
                     </button>
                   </div>
 
-                  <div className="space-y-1">
-                    {/* Bags */}
-                    <button
-                      id="dropdown-item-bags"
-                      onClick={() => handleNavClick('shop', 'Bags')}
-                      className="w-full px-3 py-2.5 text-left flex items-center gap-3 group hover:bg-[#faf6f0] transition rounded-xl cursor-pointer"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-[#ede5da] group-hover:bg-[#8b4513] text-[#8b4513] group-hover:text-white transition flex items-center justify-center shrink-0">
-                        <ShoppingBag className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs font-bold text-[#231f1c] group-hover:text-[#8b4513] transition">
-                            Bags
-                          </p>
-                          <span className="text-[10px] text-[#8c7b6d] group-hover:text-[#8b4513] transition">Satchels & Messengers</span>
+                  <div className="space-y-1 max-h-[380px] overflow-y-auto pr-1">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        id={`dropdown-item-${cat.id.toLowerCase()}`}
+                        onClick={() => handleNavClick('shop', cat.id)}
+                        className="w-full px-3 py-2 text-left flex items-center gap-3 group hover:bg-[#faf6f0] transition rounded-xl cursor-pointer"
+                      >
+                        <div className="w-8 h-8 rounded-lg bg-[#ede5da] group-hover:bg-[#8b4513] text-[#8b4513] group-hover:text-white transition flex items-center justify-center shrink-0">
+                          {getCategoryIcon(cat.id)}
                         </div>
-                        <p className="text-[11px] text-[#73665a] truncate">
-                          Full-grain hide satchels, briefcases & duffels
-                        </p>
-                      </div>
-                    </button>
-
-                    {/* Wallets */}
-                    <button
-                      id="dropdown-item-wallets"
-                      onClick={() => handleNavClick('shop', 'Wallets')}
-                      className="w-full px-3 py-2.5 text-left flex items-center gap-3 group hover:bg-[#faf6f0] transition rounded-xl cursor-pointer"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-[#ede5da] group-hover:bg-[#8b4513] text-[#8b4513] group-hover:text-white transition flex items-center justify-center shrink-0">
-                        <Wallet className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs font-bold text-[#231f1c] group-hover:text-[#8b4513] transition">
-                            Wallets
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs font-bold text-[#231f1c] group-hover:text-[#8b4513] transition">
+                              {cat.name}
+                            </p>
+                            <span className="text-[10px] text-[#8c7b6d] group-hover:text-[#8b4513] transition">
+                              Explore
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-[#73665a] truncate">
+                            {cat.tagline || 'Handcrafted atelier goods'}
                           </p>
-                          <span className="text-[10px] text-[#8c7b6d] group-hover:text-[#8b4513] transition">Bifolds & Cardholders</span>
                         </div>
-                        <p className="text-[11px] text-[#73665a] truncate">
-                          Slim bifolds, card sleeves & zip organizers
-                        </p>
-                      </div>
-                    </button>
-
-                    {/* Belts */}
-                    <button
-                      id="dropdown-item-belts"
-                      onClick={() => handleNavClick('shop', 'Belts')}
-                      className="w-full px-3 py-2.5 text-left flex items-center gap-3 group hover:bg-[#faf6f0] transition rounded-xl cursor-pointer"
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-[#ede5da] group-hover:bg-[#8b4513] text-[#8b4513] group-hover:text-white transition flex items-center justify-center shrink-0">
-                        <Layers className="w-4 h-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <p className="text-xs font-bold text-[#231f1c] group-hover:text-[#8b4513] transition">
-                            Belts
-                          </p>
-                          <span className="text-[10px] text-[#8c7b6d] group-hover:text-[#8b4513] transition">Solid Brass & Bridle</span>
-                        </div>
-                        <p className="text-[11px] text-[#73665a] truncate">
-                          Heavy-duty bridle straps & antique brass buckles
-                        </p>
-                      </div>
-                    </button>
-                  </div>
-
-                  {/* Secondary categories */}
-                  <div className="border-t border-[#f2ece2] mt-2 pt-2 grid grid-cols-2 gap-1 px-1">
-                    <button
-                      id="dropdown-item-folios"
-                      onClick={() => handleNavClick('shop', 'Folios')}
-                      className="px-2.5 py-1.5 text-left text-[11px] font-medium text-[#52473e] hover:text-[#8b4513] hover:bg-[#faf6f0] rounded-lg transition cursor-pointer"
-                    >
-                      • Folios & Sleeves
-                    </button>
-                    <button
-                      id="dropdown-item-accessories"
-                      onClick={() => handleNavClick('shop', 'Accessories')}
-                      className="px-2.5 py-1.5 text-left text-[11px] font-medium text-[#52473e] hover:text-[#8b4513] hover:bg-[#faf6f0] rounded-lg transition cursor-pointer"
-                    >
-                      • Key & Tech Goods
-                    </button>
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
@@ -280,12 +249,22 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </nav>
 
-          {/* Action Icons (Search, Wishlist, Cart) */}
-          <div className="flex items-center space-x-3 sm:space-x-4">
+          {/* Action Icons (Bulk Buy, Search, Wishlist, Cart) */}
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <button
+              id="navbar-bulk-buy-btn"
+              onClick={onOpenBulkModal}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-[#8b4513]/10 hover:bg-[#8b4513] text-[#8b4513] hover:text-white border border-[#8b4513]/30 transition shadow-2xs cursor-pointer"
+              title="Bulk Buy & Wholesale Inquiries"
+            >
+              <Building2 className="w-3.5 h-3.5" />
+              <span>Bulk Buy</span>
+            </button>
+
             <button
               id="header-search-btn"
               onClick={onOpenSearch}
-              className="p-2.5 text-[#3a332d] hover:text-[#8b4513] hover:bg-[#ede5da] rounded-full transition cursor-pointer"
+              className="p-2 sm:p-2.5 text-[#3a332d] hover:text-[#8b4513] hover:bg-[#ede5da] rounded-full transition cursor-pointer"
               title="Search Catalog"
               aria-label="Search Catalog"
             >
@@ -295,7 +274,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="header-wishlist-btn"
               onClick={onOpenWishlist}
-              className="relative p-2.5 text-[#3a332d] hover:text-[#8b4513] hover:bg-[#ede5da] rounded-full transition cursor-pointer"
+              className="relative p-2 sm:p-2.5 text-[#3a332d] hover:text-[#8b4513] hover:bg-[#ede5da] rounded-full transition cursor-pointer"
               title="View Wishlist"
               aria-label="View Wishlist"
             >
@@ -310,7 +289,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="header-cart-btn"
               onClick={onOpenCart}
-              className="relative p-2.5 bg-[#231f1c] text-[#faf8f5] hover:bg-[#8b4513] rounded-full transition shadow-sm cursor-pointer"
+              className="relative p-2 sm:p-2.5 bg-[#231f1c] text-[#faf8f5] hover:bg-[#8b4513] rounded-full transition shadow-sm cursor-pointer"
               title="Shopping Bag"
               aria-label="Shopping Bag"
             >
@@ -352,58 +331,34 @@ export const Header: React.FC<HeaderProps> = ({
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 gap-1">
-                <button
-                  id="mobile-nav-bags"
-                  onClick={() => handleNavClick('shop', 'Bags')}
-                  className="p-2.5 text-left rounded-xl text-xs font-semibold text-[#3a332d] hover:bg-[#faf6f0] hover:text-[#8b4513] flex items-center gap-2.5 transition"
-                >
-                  <div className="p-1 rounded-md bg-[#ede5da] text-[#8b4513]">
-                    <ShoppingBag className="w-3.5 h-3.5" />
-                  </div>
-                  <span>Bags (Satchels & Messengers)</span>
-                </button>
-
-                <button
-                  id="mobile-nav-wallets"
-                  onClick={() => handleNavClick('shop', 'Wallets')}
-                  className="p-2.5 text-left rounded-xl text-xs font-semibold text-[#3a332d] hover:bg-[#faf6f0] hover:text-[#8b4513] flex items-center gap-2.5 transition"
-                >
-                  <div className="p-1 rounded-md bg-[#ede5da] text-[#8b4513]">
-                    <Wallet className="w-3.5 h-3.5" />
-                  </div>
-                  <span>Wallets & Cardholders</span>
-                </button>
-
-                <button
-                  id="mobile-nav-belts"
-                  onClick={() => handleNavClick('shop', 'Belts')}
-                  className="p-2.5 text-left rounded-xl text-xs font-semibold text-[#3a332d] hover:bg-[#faf6f0] hover:text-[#8b4513] flex items-center gap-2.5 transition"
-                >
-                  <div className="p-1 rounded-md bg-[#ede5da] text-[#8b4513]">
-                    <Layers className="w-3.5 h-3.5" />
-                  </div>
-                  <span>Bridle Leather Belts</span>
-                </button>
-
-                <div className="grid grid-cols-2 gap-1 pt-1 border-t border-[#f0e9df]">
+              <div className="grid grid-cols-1 gap-1 max-h-[300px] overflow-y-auto">
+                {categories.map((cat) => (
                   <button
-                    id="mobile-nav-folios"
-                    onClick={() => handleNavClick('shop', 'Folios')}
-                    className="p-2 text-left rounded-lg text-[11px] font-medium text-[#52473e] hover:bg-[#faf6f0] hover:text-[#8b4513] transition"
+                    key={cat.id}
+                    id={`mobile-nav-${cat.id.toLowerCase()}`}
+                    onClick={() => handleNavClick('shop', cat.id)}
+                    className="p-2.5 text-left rounded-xl text-xs font-semibold text-[#3a332d] hover:bg-[#faf6f0] hover:text-[#8b4513] flex items-center gap-2.5 transition cursor-pointer"
                   >
-                    • Folios
+                    <div className="p-1 rounded-md bg-[#ede5da] text-[#8b4513] shrink-0">
+                      {getCategoryIcon(cat.id)}
+                    </div>
+                    <span className="truncate">{cat.name}</span>
                   </button>
-                  <button
-                    id="mobile-nav-accessories"
-                    onClick={() => handleNavClick('shop', 'Accessories')}
-                    className="p-2 text-left rounded-lg text-[11px] font-medium text-[#52473e] hover:bg-[#faf6f0] hover:text-[#8b4513] transition"
-                  >
-                    • Accessories
-                  </button>
-                </div>
+                ))}
               </div>
             </div>
+
+            <button
+              id="mobile-nav-bulk-buy"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenBulkModal();
+              }}
+              className="w-full p-3 text-left rounded-xl text-sm font-semibold transition bg-[#8b4513]/10 text-[#8b4513] hover:bg-[#8b4513] hover:text-white flex items-center gap-2.5 cursor-pointer"
+            >
+              <Building2 className="w-4 h-4 text-[#8b4513]" />
+              <span>Bulk Buy & Corporate Orders</span>
+            </button>
 
             <button
               id="mobile-nav-story"
@@ -434,4 +389,5 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
+
 

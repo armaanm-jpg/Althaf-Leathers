@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { Filter, SlidersHorizontal, RotateCcw, Search, X, Check } from 'lucide-react';
-import { Product, ProductCategory, FilterState } from '../types';
+import { Product, ProductCategory, FilterState, CategoryMeta } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { formatINR } from '../utils/format';
+import { DEFAULT_CATEGORIES } from '../data/categories';
 
 interface ShopPageProps {
   products: Product[];
@@ -13,6 +14,7 @@ interface ShopPageProps {
   onAddToCart: (product: Product, colorName: string, size?: string) => void;
   wishlistIds: string[];
   onToggleWishlist: (product: Product) => void;
+  categories?: CategoryMeta[];
 }
 
 export const ShopPage: React.FC<ShopPageProps> = ({
@@ -24,6 +26,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   onAddToCart,
   wishlistIds,
   onToggleWishlist,
+  categories = DEFAULT_CATEGORIES,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLeatherTypes, setSelectedLeatherTypes] = useState<string[]>([]);
@@ -32,7 +35,10 @@ export const ShopPage: React.FC<ShopPageProps> = ({
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'rating' | 'newest'>('featured');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
-  const categories: ProductCategory[] = ['All', 'Bags', 'Wallets', 'Belts', 'Folios', 'Accessories'];
+  const categoryOptions = useMemo(() => {
+    const list: ProductCategory[] = ['All', ...categories.map((c) => c.id)];
+    return list;
+  }, [categories]);
   const leatherTypes = ['Full-Grain', 'Vegetable-Tanned', 'Top-Grain'];
   const availableColors = [
     { name: 'Heritage Tan', hex: '#c19a6b' },
@@ -127,7 +133,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
 
       {/* Category Navigation Pills */}
       <div className="flex items-center justify-center gap-2 overflow-x-auto pb-4 mb-8">
-        {categories.map((cat) => (
+        {categoryOptions.map((cat) => (
           <button
             key={cat}
             id={`shop-pill-${cat.toLowerCase()}`}
@@ -368,7 +374,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
               {filteredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -413,8 +419,8 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                   <label className="block text-xs font-semibold uppercase tracking-wider text-[#52473e] mb-2">
                     Category
                   </label>
-                  <div className="space-y-1.5">
-                    {categories.map((cat) => (
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                    {categoryOptions.map((cat) => (
                       <button
                         key={cat}
                         onClick={() => setSelectedCategory(cat)}
@@ -422,7 +428,7 @@ export const ShopPage: React.FC<ShopPageProps> = ({
                           selectedCategory === cat ? 'bg-[#231f1c] text-white' : 'hover:bg-[#ede5da] text-[#3a332d]'
                         }`}
                       >
-                        {cat}
+                        {cat === 'All' ? 'All Pieces' : cat}
                       </button>
                     ))}
                   </div>
