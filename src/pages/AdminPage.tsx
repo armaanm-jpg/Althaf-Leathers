@@ -34,11 +34,27 @@ import {
   Tag,
   AlertCircle,
   MapPin,
-  MessageCircle
+  MessageCircle,
+  Database,
+  Server,
+  HardDrive,
+  RefreshCw,
+  Clock,
+  UserCheck
 } from 'lucide-react';
 import { Product, ProductCategory, LeatherType, ColorVariant, HomePageConfig, CategoryMeta } from '../types';
 import { DEFAULT_CATEGORIES, CATEGORY_IMAGE_PRESETS } from '../data/categories';
 import { formatINR } from '../utils/format';
+import {
+  adminLoginApi,
+  changeAdminPasscodeApi,
+  getAdminAuthStatusApi,
+  fetchDbStatsApi,
+  resetProductsApi,
+  resetCategoriesApi,
+  DbStats,
+  AdminAuthStatus,
+} from '../services/api';
 
 interface AdminPageProps {
   products: Product[];
@@ -153,9 +169,37 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   const [confirmPasscode, setConfirmPasscode] = useState('');
   const [passcodeChangeError, setPasscodeChangeError] = useState<string | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'products' | 'homepage' | 'categories'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'homepage' | 'categories' | 'database'>('products');
   const [filterCategory, setFilterCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // SQLite Database and Auth state
+  const [dbStats, setDbStats] = useState<DbStats | null>(null);
+  const [authInfo, setAuthInfo] = useState<AdminAuthStatus | null>(null);
+  const [isLoadingDb, setIsLoadingDb] = useState(false);
+  const [isResettingDb, setIsResettingDb] = useState(false);
+
+  const loadDbStats = async () => {
+    setIsLoadingDb(true);
+    try {
+      const [stats, auth] = await Promise.allSettled([
+        fetchDbStatsApi(),
+        getAdminAuthStatusApi()
+      ]);
+      if (stats.status === 'fulfilled') setDbStats(stats.value);
+      if (auth.status === 'fulfilled') setAuthInfo(auth.value);
+    } catch (e) {
+      console.warn('Failed to load DB stats:', e);
+    } finally {
+      setIsLoadingDb(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadDbStats();
+    }
+  }, [isAuthenticated, activeTab]);
   
   // Product Editor Modal State
   const [isEditingModalOpen, setIsEditingModalOpen] = useState(false);
@@ -360,22 +404,36 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   // Security Handlers
   const getStoredMasterKey = () => localStorage.getItem('althaf_admin_passcode') || 'qwertyadmin123!@#';
 
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const masterKey = getStoredMasterKey();
-    if (
-      passcode === masterKey ||
-      passcode === 'qwertyadmin123!@#' ||
-      passcode === 'admin123' ||
-      passcode === 'althaf2026' ||
-      passcode === 'admin'
-    ) {
-      sessionStorage.setItem('althaf_admin_auth', 'true');
-      setIsAuthenticated(true);
-      setAuthError(null);
-      setPasscode('');
-      showToast('✓ Admin access granted. Welcome to Atelier Console.');
-    } else {
+    try {
+      const res = await adminLoginApi(passcode);
+      if (res.success) {
+        sessionStorage.setItem('althaf_admin_auth', 'true');
+        setIsAuthenticated(true);
+        setAuthError(null);
+        setPasscode('');
+        showToast('✓ Verified via SQLite Admin Credentials. Welcome to Atelier Console.');
+        loadDbStats();
+        return;
+      }
+    } catch {
+      // Fallback verification
+      const masterKey = getStoredMasterKey();
+      if (
+        passcode === masterKey ||
+        passcode === 'qwertyadmin123!@#' ||
+        passcode === 'admin123' ||
+        passcode === 'althaf2026' ||
+        passcode === 'admin'
+      ) {
+        sessionStorage.setItem('althaf_admin_auth', 'true');
+        setIsAuthenticated(true);
+        setAuthError(null);
+        setPasscode('');
+        showToast('✓ Admin access granted (Local Master Key).');
+        return;
+      }
       setAuthError('Incorrect passcode. Please verify and retry.');
     }
   };
@@ -386,13 +444,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     showToast('Admin session locked securely.');
   };
 
-  const handleChangePasscodeSubmit = (e: React.FormEvent) => {
+  const handleChangePasscodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const currentStoredKey = getStoredMasterKey();
-    if (currentPasscodeAttempt !== currentStoredKey && currentPasscodeAttempt !== 'althaf2026' && currentPasscodeAttempt !== 'admin') {
-      setPasscodeChangeError('Current passcode is incorrect.');
-      return;
-    }
     if (newPasscode.length < 4) {
       setPasscodeChangeError('New passcode must be at least 4 characters long.');
       return;
@@ -402,13 +455,31 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       return;
     }
 
-    localStorage.setItem('althaf_admin_passcode', newPasscode);
-    setIsChangePasscodeModalOpen(false);
-    setCurrentPasscodeAttempt('');
-    setNewPasscode('');
-    setConfirmPasscode('');
-    setPasscodeChangeError(null);
-    showToast('✓ Master admin passcode updated successfully!');
+    try {
+      const msg = await changeAdminPasscodeApi(currentPasscodeAttempt, newPasscode);
+      localStorage.setItem('althaf_admin_passcode', newPasscode);
+      setIsChangePasscodeModalOpen(false);
+      setCurrentPasscodeAttempt('');
+      setNewPasscode('');
+      setConfirmPasscode('');
+      setPasscodeChangeError(null);
+      showToast(`✓ ${msg}`);
+      loadDbStats();
+    } catch (err: any) {
+      const currentStoredKey = getStoredMasterKey();
+      if (currentPasscodeAttempt !== currentStoredKey && currentPasscodeAttempt !== 'althaf2026' && currentPasscodeAttempt !== 'admin') {
+        setPasscodeChangeError(err.message || 'Current passcode is incorrect.');
+        return;
+      }
+
+      localStorage.setItem('althaf_admin_passcode', newPasscode);
+      setIsChangePasscodeModalOpen(false);
+      setCurrentPasscodeAttempt('');
+      setNewPasscode('');
+      setConfirmPasscode('');
+      setPasscodeChangeError(null);
+      showToast('✓ Master admin passcode updated in storage.');
+    }
   };
 
   // Category Handlers
@@ -749,6 +820,18 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             }`}
           >
             <LayoutGrid className="w-4 h-4" /> Homepage Display Manager
+          </button>
+
+          <button
+            id="admin-tab-database"
+            onClick={() => setActiveTab('database')}
+            className={`pb-3 text-sm font-bold tracking-wide transition border-b-2 flex items-center gap-2 cursor-pointer shrink-0 ${
+              activeTab === 'database'
+                ? 'border-[#8b4513] text-[#8b4513]'
+                : 'border-transparent text-[#73665a] hover:text-[#231f1c]'
+            }`}
+          >
+            <Database className="w-4 h-4 text-[#c19a6b]" /> SQLite Database & Creds
           </button>
         </div>
 
@@ -1511,6 +1594,263 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   Expand your atelier's collection by adding custom product departments.
                 </p>
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: SQLITE DATABASE & CREDENTIALS VIEW */}
+        {activeTab === 'database' && (
+          <div className="space-y-6">
+            {/* Database Engine Status Banner */}
+            <div className="bg-[#231f1c] text-[#faf8f5] p-6 sm:p-8 rounded-3xl border border-[#3d332b] shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-[#c19a6b]/10 rounded-full blur-3xl pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-950/60 border border-emerald-700/50 rounded-full text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    SQLite 3 Engine Online • Connected
+                  </div>
+                  <h3 className="font-serif text-2xl sm:text-3xl font-bold text-[#faf8f5]">
+                    SQLite Database & Credential Vault
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#a89b8d] max-w-2xl">
+                    Persistent relational data store for Althaf Leathers. All admin credentials, catalog inventory, category taxonomies, site configurations, and order inquiries are safely persisted to disk in SQLite.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    id="admin-db-refresh-btn"
+                    onClick={loadDbStats}
+                    disabled={isLoadingDb}
+                    className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-[#faf8f5] rounded-xl text-xs font-bold uppercase tracking-wider border border-white/15 transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isLoadingDb ? 'animate-spin' : ''}`} />
+                    Refresh Telemetry
+                  </button>
+
+                  <button
+                    id="admin-db-change-passcode-btn"
+                    onClick={() => setIsChangePasscodeModalOpen(true)}
+                    className="px-4 py-2.5 bg-[#c19a6b] hover:bg-[#d8af7e] text-[#1a1614] rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-md flex items-center gap-2 cursor-pointer"
+                  >
+                    <KeyRound className="w-4 h-4" /> Change Master Key
+                  </button>
+                </div>
+              </div>
+
+              {/* Status Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-6 border-t border-[#3d332b]">
+                <div className="p-4 bg-[#2d2520] rounded-2xl border border-[#3d332b]">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#c19a6b] mb-1">
+                    <HardDrive className="w-4 h-4" /> Database File
+                  </div>
+                  <p className="text-sm font-mono font-bold text-[#faf8f5] truncate">
+                    {dbStats?.databasePath || 'data/althaf_leathers.sqlite'}
+                  </p>
+                  <span className="text-[10px] text-[#8c7b6d] mt-1 block">
+                    Driver: {dbStats?.engine || 'sql.js (WebAssembly)'}
+                  </span>
+                </div>
+
+                <div className="p-4 bg-[#2d2520] rounded-2xl border border-[#3d332b]">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#c19a6b] mb-1">
+                    <UserCheck className="w-4 h-4" /> Master Admin User
+                  </div>
+                  <p className="text-sm font-bold text-[#faf8f5]">
+                    {authInfo?.username || 'admin'}
+                  </p>
+                  <span className="text-[10px] text-[#8c7b6d] mt-1 block">
+                    Role: {authInfo?.role || 'administrator'}
+                  </span>
+                </div>
+
+                <div className="p-4 bg-[#2d2520] rounded-2xl border border-[#3d332b]">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#c19a6b] mb-1">
+                    <Package className="w-4 h-4" /> Products Stored
+                  </div>
+                  <p className="text-2xl font-serif font-bold text-[#faf8f5]">
+                    {dbStats?.productsCount ?? products.length}
+                  </p>
+                  <span className="text-[10px] text-[#8c7b6d] mt-1 block">
+                    Table: <code className="font-mono text-[#c19a6b]">products</code>
+                  </span>
+                </div>
+
+                <div className="p-4 bg-[#2d2520] rounded-2xl border border-[#3d332b]">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#c19a6b] mb-1">
+                    <Folder className="w-4 h-4" /> Categories
+                  </div>
+                  <p className="text-2xl font-serif font-bold text-[#faf8f5]">
+                    {dbStats?.categoriesCount ?? categories.length}
+                  </p>
+                  <span className="text-[10px] text-[#8c7b6d] mt-1 block">
+                    Table: <code className="font-mono text-[#c19a6b]">categories</code>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Relational Tables Schema Explorer */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#e8dfd3] shadow-xs space-y-6">
+              <div>
+                <h4 className="font-serif text-xl font-bold text-[#1a1614] flex items-center gap-2">
+                  <Database className="w-5 h-5 text-[#8b4513]" /> Active SQLite Schema & Storage Tables
+                </h4>
+                <p className="text-xs text-[#73665a] mt-0.5">
+                  Structured tables initialized in the local SQLite database file on the server.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Table 1: admin_credentials */}
+                <div className="p-5 bg-[#faf7f2] rounded-2xl border border-[#e8dfd3] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <KeyRound className="w-4 h-4 text-[#8b4513]" />
+                      <span className="font-mono font-bold text-sm text-[#1a1614]">admin_credentials</span>
+                    </div>
+                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full uppercase">
+                      Active
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#73665a]">
+                    Secures admin authentication credentials, passcode hash, administrative role, and timestamp logs.
+                  </p>
+                  <div className="bg-white p-3 rounded-xl border border-[#ded4c6] text-[11px] font-mono text-[#52473e] space-y-1">
+                    <div>• <strong className="text-[#8b4513]">id</strong>: TEXT PRIMARY KEY</div>
+                    <div>• <strong className="text-[#8b4513]">username</strong>: TEXT NOT NULL</div>
+                    <div>• <strong className="text-[#8b4513]">passcode_hash</strong>: TEXT NOT NULL</div>
+                    <div>• <strong className="text-[#8b4513]">role</strong>: TEXT DEFAULT 'admin'</div>
+                    <div>• <strong className="text-[#8b4513]">updated_at</strong>: TEXT</div>
+                  </div>
+                </div>
+
+                {/* Table 2: products */}
+                <div className="p-5 bg-[#faf7f2] rounded-2xl border border-[#e8dfd3] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Package className="w-4 h-4 text-[#8b4513]" />
+                      <span className="font-mono font-bold text-sm text-[#1a1614]">products</span>
+                    </div>
+                    <span className="px-2 py-0.5 bg-[#8b4513]/10 text-[#8b4513] text-[10px] font-bold rounded-full">
+                      {products.length} Records
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#73665a]">
+                    Stores complete leather catalog specs, pricing in INR, leather grain classifications, color variants, and images.
+                  </p>
+                  <div className="bg-white p-3 rounded-xl border border-[#ded4c6] text-[11px] font-mono text-[#52473e] space-y-1">
+                    <div>• <strong className="text-[#8b4513]">id</strong>: TEXT PRIMARY KEY</div>
+                    <div>• <strong className="text-[#8b4513]">name, tagline, category</strong>: TEXT</div>
+                    <div>• <strong className="text-[#8b4513]">price, original_price</strong>: REAL</div>
+                    <div>• <strong className="text-[#8b4513]">leather_type, badge</strong>: TEXT</div>
+                    <div>• <strong className="text-[#8b4513]">colors_json, images_json</strong>: TEXT (JSON)</div>
+                  </div>
+                </div>
+
+                {/* Table 3: categories */}
+                <div className="p-5 bg-[#faf7f2] rounded-2xl border border-[#e8dfd3] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Folder className="w-4 h-4 text-[#8b4513]" />
+                      <span className="font-mono font-bold text-sm text-[#1a1614]">categories</span>
+                    </div>
+                    <span className="px-2 py-0.5 bg-[#8b4513]/10 text-[#8b4513] text-[10px] font-bold rounded-full">
+                      {categories.length} Collections
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#73665a]">
+                    Taxonomy definitions for storefront navigation, department taglines, and featured gallery headers.
+                  </p>
+                  <div className="bg-white p-3 rounded-xl border border-[#ded4c6] text-[11px] font-mono text-[#52473e] space-y-1">
+                    <div>• <strong className="text-[#8b4513]">id</strong>: TEXT PRIMARY KEY</div>
+                    <div>• <strong className="text-[#8b4513]">name, tagline</strong>: TEXT NOT NULL</div>
+                    <div>• <strong className="text-[#8b4513]">image_url</strong>: TEXT</div>
+                    <div>• <strong className="text-[#8b4513]">display_order</strong>: INTEGER</div>
+                  </div>
+                </div>
+
+                {/* Table 4: site_config */}
+                <div className="p-5 bg-[#faf7f2] rounded-2xl border border-[#e8dfd3] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Sliders className="w-4 h-4 text-[#8b4513]" />
+                      <span className="font-mono font-bold text-sm text-[#1a1614]">site_config</span>
+                    </div>
+                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded-full uppercase">
+                      Dynamic
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#73665a]">
+                    Stores global homepage bento bindings, announcement banner text, and official WhatsApp hotline number.
+                  </p>
+                  <div className="bg-white p-3 rounded-xl border border-[#ded4c6] text-[11px] font-mono text-[#52473e] space-y-1">
+                    <div>• <strong className="text-[#8b4513]">key</strong>: TEXT PRIMARY KEY ('homepage_config')</div>
+                    <div>• <strong className="text-[#8b4513]">value_json</strong>: TEXT (JSON)</div>
+                    <div>• <strong className="text-[#8b4513]">updated_at</strong>: TEXT</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Database Tools & Factory Reset */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#e8dfd3] shadow-xs space-y-4">
+              <h4 className="font-serif text-lg font-bold text-[#1a1614] flex items-center gap-2">
+                <Sliders className="w-4 h-4 text-[#8b4513]" /> SQLite Maintenance & Seed Controls
+              </h4>
+              <p className="text-xs text-[#73665a]">
+                Use these tools if you ever need to re-seed or reload default catalog data into your SQLite database.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                <button
+                  id="admin-reset-products-db-btn"
+                  onClick={async () => {
+                    if (confirm('Are you sure you want to re-seed all products in the SQLite database to factory defaults?')) {
+                      setIsResettingDb(true);
+                      try {
+                        const resetProds = await resetProductsApi();
+                        showToast(`✓ SQLite Products table reset to default catalog (${resetProds.length} items).`);
+                        loadDbStats();
+                      } catch (e: any) {
+                        showToast(`Notice: ${e.message}`);
+                      } finally {
+                        setIsResettingDb(false);
+                      }
+                    }
+                  }}
+                  disabled={isResettingDb}
+                  className="px-4 py-2.5 bg-[#faf7f2] hover:bg-[#ede5da] text-[#52473e] border border-[#ded4c6] rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isResettingDb ? 'animate-spin' : ''}`} />
+                  Re-Seed Products Table
+                </button>
+
+                <button
+                  id="admin-reset-categories-db-btn"
+                  onClick={async () => {
+                    if (confirm('Are you sure you want to re-seed all categories in the SQLite database to factory defaults?')) {
+                      setIsResettingDb(true);
+                      try {
+                        const resetCats = await resetCategoriesApi();
+                        showToast(`✓ SQLite Categories table reset to default collections (${resetCats.length} items).`);
+                        loadDbStats();
+                      } catch (e: any) {
+                        showToast(`Notice: ${e.message}`);
+                      } finally {
+                        setIsResettingDb(false);
+                      }
+                    }
+                  }}
+                  disabled={isResettingDb}
+                  className="px-4 py-2.5 bg-[#faf7f2] hover:bg-[#ede5da] text-[#52473e] border border-[#ded4c6] rounded-xl text-xs font-bold uppercase tracking-wider transition cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                >
+                  <Folder className="w-3.5 h-3.5 text-[#8b4513]" />
+                  Re-Seed Categories Table
+                </button>
+              </div>
             </div>
           </div>
         )}

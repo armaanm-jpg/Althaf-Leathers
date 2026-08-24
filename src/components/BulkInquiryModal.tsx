@@ -7,6 +7,7 @@ import {
   createWhatsAppCheckoutUrl,
   DEFAULT_WHATSAPP_NUMBER
 } from '../utils/whatsapp';
+import { logOrderInquiryApi } from '../services/api';
 
 interface BulkInquiryModalProps {
   isOpen: boolean;
@@ -64,6 +65,23 @@ export const BulkInquiryModal: React.FC<BulkInquiryModalProps> = ({
 
     const waUrl = createWhatsAppCheckoutUrl(whatsappNumber, message);
     setLastWhatsAppUrl(waUrl);
+
+    // Asynchronously log to SQLite database
+    logOrderInquiryApi({
+      type: 'bulk_inquiry',
+      referenceCode: `BULK-${Date.now()}`,
+      customerName: contactPerson || companyName,
+      phone,
+      email,
+      totalAmount: estimatedTotal,
+      payload: {
+        productName: initialProduct?.name || 'Custom Atelier Leather Batch',
+        quantity,
+        discountPercent,
+        companyName,
+        notes,
+      }
+    });
 
     try {
       window.open(waUrl, '_blank', 'noopener,noreferrer');

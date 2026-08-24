@@ -25,6 +25,7 @@ import {
   DEFAULT_WHATSAPP_NUMBER,
   CustomerOrderInfo
 } from '../utils/whatsapp';
+import { logOrderInquiryApi } from '../services/api';
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -91,6 +92,25 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
 
     const waUrl = createWhatsAppCheckoutUrl(whatsappNumber, message);
     setLastWhatsAppUrl(waUrl);
+
+    // Asynchronously log the order to SQLite database
+    logOrderInquiryApi({
+      type: 'checkout_order',
+      referenceCode: generatedOrder,
+      customerName: formData.fullName,
+      phone: formData.phone,
+      email: formData.email,
+      totalAmount: finalTotal,
+      payload: {
+        itemsCount: items.length,
+        itemsSummary: items.map(i => `${i.product.name} (${i.selectedColor}) x${i.quantity}`).join(', '),
+        promoCode,
+        shippingCost,
+        city: formData.city,
+        state: formData.state,
+        pinCode: formData.pinCode,
+      }
+    });
 
     // Open WhatsApp in new tab / app
     try {

@@ -17,6 +17,16 @@ import { ProductDetailPage } from './pages/ProductDetailPage';
 import { StoryPage } from './pages/StoryPage';
 import { ContactPage } from './pages/ContactPage';
 import { AdminPage } from './pages/AdminPage';
+import {
+  fetchProductsApi,
+  fetchCategoriesApi,
+  fetchSiteConfigApi,
+  saveProductApi,
+  deleteProductApi,
+  saveCategoryApi,
+  deleteCategoryApi,
+  updateSiteConfigApi,
+} from './services/api';
 
 const DEFAULT_HOME_CONFIG: HomePageConfig = {
   heroProductId: 'heritage-satchel',
@@ -117,6 +127,39 @@ export default function App() {
       console.error('Failed to save homepage config:', e);
     }
   }, [homeConfig]);
+
+  // Initial sync from SQLite database on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function syncFromSqlite() {
+      try {
+        const [dbProductsRes, dbCatsRes, dbConfigRes] = await Promise.allSettled([
+          fetchProductsApi(),
+          fetchCategoriesApi(),
+          fetchSiteConfigApi(),
+        ]);
+
+        if (!isMounted) return;
+
+        if (dbProductsRes.status === 'fulfilled' && dbProductsRes.value.length > 0) {
+          setProducts(dbProductsRes.value);
+        }
+        if (dbCatsRes.status === 'fulfilled' && dbCatsRes.value.length > 0) {
+          setCategories(dbCatsRes.value);
+        }
+        if (dbConfigRes.status === 'fulfilled' && dbConfigRes.value) {
+          setHomeConfig(dbConfigRes.value);
+        }
+      } catch (err) {
+        console.warn('[SQLite] Initial load fallback to client storage:', err);
+      }
+    }
+
+    syncFromSqlite();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Modals state
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
@@ -257,8 +300,9 @@ export default function App() {
     setCartItems([]);
   };
 
-  // Admin Handlers
-  const handleSaveProduct = (productToSave: Product, isNew: boolean) => {
+  // Admin Handlers with SQLite persistence
+  const handleSaveProduct = async (productToSave: Product, isNew: boolean) => {
+    // Optimistic state update
     setProducts((prev) => {
       if (isNew) {
         return [productToSave, ...prev];
@@ -267,13 +311,20 @@ export default function App() {
       }
     });
 
-    // If currently selected product is edited, update it
     if (selectedProduct && selectedProduct.id === productToSave.id) {
       setSelectedProduct(productToSave);
     }
+
+    try {
+      const saved = await saveProductApi(productToSave, isNew);
+      // Sync with returned object
+      setProducts((prev) => prev.map((p) => (p.id === saved.id ? saved : p)));
+    } catch (err) {
+      console.warn('[SQLite] Failed to persist product to SQLite:', err);
+    }
   };
 
-  const handleDeleteProduct = (productId: string) => {
+  const handleDeleteProduct = async (productId: string) => {
     setProducts((prev) => prev.filter((p) => p.id !== productId));
     
     // Clean up home config if needed
@@ -288,9 +339,15 @@ export default function App() {
       setSelectedProduct(null);
       setActivePage('shop');
     }
+
+    try {
+      await deleteProductApi(productId);
+    } catch (err) {
+      console.warn('[SQLite] Failed to delete product from SQLite:', err);
+    }
   };
 
-  const handleSaveCategory = (categoryToSave: CategoryMeta) => {
+  const handleSaveCategory = async (categoryToSave: CategoryMeta, isNew: boolean = false) => {
     setCategories((prev) => {
       const exists = prev.some((c) => c.id === categoryToSave.id);
       if (exists) {
@@ -299,18 +356,35 @@ export default function App() {
         return [...prev, categoryToSave];
       }
     });
-  };
 
-  const handleDeleteCategory = (categoryId: string) => {
-    setCategories((prev) => prev.filter((c) => c.id !== categoryId));
-    // If selectedCategory was this category, revert to 'All'
-    if (selectedCategory === categoryId) {
-      setSelectedCategory('All');
+    try {
+      const saved = await saveCategoryApi(categoryToSave, isNew);
+      setCategories((prev) => prev.map((c) => (c.id === saved.id ? saved : c)));
+    } catch (err) {
+      console.warn('[SQLite] Failed to persist category to SQLite:', err);
     }
   };
 
-  const handleSaveHomeConfig = (newConfig: HomePageConfig) => {
+  const handleDeleteCategory = async (categoryId: string) => {
+    setCategories((prev) => prev.filter((c) => c.id !== categoryId));
+    if (selectedCategory === categoryId) {
+      setSelectedCategory('All');
+    }
+
+    try {
+      await deleteCategoryApi(categoryId);
+    } catch (err) {
+      console.warn('[SQLite] Failed to delete category from SQLite:', err);
+    }
+  };
+
+  const handleSaveHomeConfig = async (newConfig: HomePageConfig) => {
     setHomeConfig(newConfig);
+    try {
+      await updateSiteConfigApi(newConfig);
+    } catch (err) {
+      console.warn('[SQLite] Failed to persist home config to SQLite:', err);
+    }
   };
 
   const wishlistProducts = products.filter((p) => wishlistIds.includes(p.id));
