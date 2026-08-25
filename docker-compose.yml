@@ -1,0 +1,15 @@
+services:
+  althaf-leathers:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: althaf-leathers-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - ./althaf_leathers.sqlite:/app/althaf_leathers.sqlite
+      - ./data:/app/data
