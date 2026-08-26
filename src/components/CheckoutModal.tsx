@@ -374,18 +374,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 Inquiry Sent to WhatsApp!
               </h3>
               <p className="text-xs text-[#6b5f54] max-w-md mx-auto leading-relaxed">
-                Thank you{formData.fullName ? `, ${formData.fullName}` : ''}! Your order inquiry with complete product pricing and approximate checkout amount of <strong>{formatINR(finalTotal)}</strong> has been opened in WhatsApp.
-              </p>
-            </div>
-
-            {/* Summary Box */}
-            <div className="p-4 bg-white rounded-2xl border border-[#e8dfd3] text-left space-y-2 shadow-xs text-xs">
-              <div className="flex justify-between font-semibold text-[#1a1614] border-b border-[#f2ece2] pb-2">
-                <span>Items ({items.length})</span>
-                <span>Total: {formatINR(finalTotal)}</span>
-              </div>
-              <p className="text-[#6b5f54]">
-                Our team at Modampalli Street, Proddatur will verify leather hide stock, dispatch timelines, and confirm tracking with you in the chat.
+                Thank you{formData.fullName ? `, ${formData.fullName}` : ''}! Your order summary is ready on WhatsApp. Please review the details and tap <strong>Send</strong> to place your order.
               </p>
             </div>
 
@@ -418,13 +407,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                     <span>Copy Order Text</span>
                   </>
                 )}
-              </button>
-              <button
-                id="order-print-receipt-btn"
-                onClick={handlePrint}
-                className="py-3 px-4 bg-[#ede5da] hover:bg-[#ded4c6] text-[#231f1c] rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer"
-              >
-                <Printer className="w-4 h-4" /> Print
               </button>
               <button
                 id="order-continue-shopping-btn"
