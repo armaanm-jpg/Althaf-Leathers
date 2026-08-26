@@ -418,20 +418,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         return;
       }
     } catch {
-      // Fallback verification
+      // Fallback verification when backend is not responding
       const masterKey = getStoredMasterKey();
-      if (
-        passcode === masterKey ||
-        passcode === 'qwertyadmin123!@#' ||
-        passcode === 'admin123' ||
-        passcode === 'althaf2026' ||
-        passcode === 'admin'
-      ) {
+      if (passcode === masterKey) {
         sessionStorage.setItem('althaf_admin_auth', 'true');
         setIsAuthenticated(true);
         setAuthError(null);
         setPasscode('');
-        showToast('✓ Admin access granted (Local Master Key).');
+        showToast('✓ Admin access granted.');
         return;
       }
       setAuthError('Incorrect passcode. Please verify and retry.');
@@ -467,7 +461,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       loadDbStats();
     } catch (err: any) {
       const currentStoredKey = getStoredMasterKey();
-      if (currentPasscodeAttempt !== currentStoredKey && currentPasscodeAttempt !== 'althaf2026' && currentPasscodeAttempt !== 'admin') {
+      if (currentPasscodeAttempt !== currentStoredKey) {
         setPasscodeChangeError(err.message || 'Current passcode is incorrect.');
         return;
       }

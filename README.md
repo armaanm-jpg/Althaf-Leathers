@@ -76,7 +76,7 @@ To manage products, categories, pricing, and homepage showcases:
 
 - **Admin URL**: Click **"Atelier Console"** in the footer of your website, or navigate directly to `https://yourdomain.com/` and open the console from the footer.
 - **Username**: `admin`
-- **Master Passcode**: `qwertyadmin123!@#` *(Emergency overrides: `althaf2026` or `admin123`)*
+- **Master Passcode**: `qwertyadmin123!@#` *(Can be changed anytime inside the Admin Console)*
 
 ---
 

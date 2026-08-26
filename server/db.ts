@@ -51,17 +51,19 @@ export async function getDatabase(): Promise<Database> {
     try {
       const fileBuffer = fs.readFileSync(targetLoadPath);
       db = new SQL.Database(fileBuffer);
+      initSchema(db);
       console.log('[SQLite] Loaded existing SQLite database from disk:', targetLoadPath);
     } catch (err) {
       console.warn('[SQLite] Corrupted database file, creating fresh DB:', err);
       db = new SQL.Database();
+      initSchema(db);
     }
   } else {
     console.log('[SQLite] Initializing new SQLite database file at:', ROOT_DB_FILE_PATH);
     db = new SQL.Database();
+    initSchema(db);
   }
 
-  initSchema(db);
   seedInitialData(db);
   saveDatabase();
 
@@ -606,14 +608,6 @@ export interface AdminCredentialRecord {
 
 export async function verifyAdminPasscode(attemptPasscode: string): Promise<{ success: boolean; username?: string }> {
   const database = await getDatabase();
-  
-  // Master bypass fallbacks if needed
-  if (attemptPasscode === 'althaf2026' || attemptPasscode === 'qwertyadmin123!@#') {
-    const now = new Date().toISOString();
-    database.run(`UPDATE admin_credentials SET last_login_at = ? WHERE id = 'admin'`, [now]);
-    saveDatabase();
-    return { success: true, username: 'admin' };
-  }
 
   const stmt = database.prepare(`SELECT username, passcode FROM admin_credentials WHERE id = 'admin' LIMIT 1`);
   if (stmt.step()) {

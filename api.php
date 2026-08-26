@@ -253,12 +253,6 @@ if ($route === 'config') {
 // 5. POST /api/auth/login
 if ($route === 'auth/login') {
     $passcode = trim($body['passcode'] ?? '');
-    
-    // Check master overrides
-    if (in_array($passcode, ['qwertyadmin123!@#', 'althaf2026', 'admin123', 'admin'], true)) {
-        echo json_encode(['success' => true, 'message' => 'Admin authenticated']);
-        exit;
-    }
 
     $stmt = $pdo->query('SELECT passcode FROM admin_credentials LIMIT 1');
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -281,7 +275,7 @@ if ($route === 'auth/change-passcode') {
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     $storedPasscode = $row ? $row['passcode'] : 'qwertyadmin123!@#';
 
-    if ($currentPasscode !== $storedPasscode && !in_array($currentPasscode, ['qwertyadmin123!@#', 'althaf2026', 'admin123', 'admin'], true)) {
+    if ($currentPasscode !== $storedPasscode) {
         http_response_code(403);
         echo json_encode(['success' => false, 'error' => 'Current passcode is incorrect']);
         exit;
@@ -293,7 +287,7 @@ if ($route === 'auth/change-passcode') {
         exit;
     }
 
-    $stmt = $pdo->prepare('UPDATE admin_credentials SET passcode = ?, updated_at = datetime(\'now\') WHERE id = \'admin-master\'');
+    $stmt = $pdo->prepare('UPDATE admin_credentials SET passcode = ?, updated_at = datetime(\'now\') WHERE id = \'admin\' OR id = \'admin-master\'');
     $stmt->execute([$newPasscode]);
 
     echo json_encode(['success' => true, 'message' => 'Master admin passcode updated successfully']);
