@@ -25,7 +25,7 @@ export interface BulkInquiryData {
   notes?: string;
 }
 
-export const DEFAULT_WHATSAPP_NUMBER = '918247677511';
+export const DEFAULT_WHATSAPP_NUMBER = '917386500505';
 
 export function getCleanDigits(phone?: string): string {
   if (!phone) return '';
@@ -67,7 +67,7 @@ export function validateWhatsAppNumber(phone?: string): {
       isValid: false,
       cleanPhone: digits.startsWith('91') ? digits : `91${digits}`,
       digitCount: localDigits.length,
-      message: `Phone number "+91 ${localDigits}" has only ${localDigits.length} digits. Indian mobile numbers require 10 digits (e.g. +91 82476 77511). WhatsApp will reject URLs with missing digits.`,
+      message: `Phone number "+91 ${localDigits}" has only ${localDigits.length} digits. Indian mobile numbers require 10 digits (e.g. +91 73865 00505). WhatsApp will reject URLs with missing digits.`,
     };
   }
 
@@ -150,7 +150,7 @@ export function generateWhatsAppOrderMessage({
 
   return `*🛍️ NEW ORDER INQUIRY — ALTHAF LEATHERS*
 *Order Reference:* ${orderNumber}
-*Workshop:* Gandhi Road, Proddatur, AP
+*Showroom:* 15/1154, Modampalli Street, Nadminpalli, Proddatur, AP 516360
 
 *ITEMS ORDERED:*
 ${itemsText}
@@ -185,7 +185,7 @@ export function generateWhatsAppBulkInquiryMessage({
 
   return `*🏢 CORPORATE & BULK BUY INQUIRY — ALTHAF LEATHERS*
 *Reference Code:* ${refCode}
-*Workshop:* Gandhi Road, Proddatur, AP
+*Showroom:* 15/1154, Modampalli Street, Nadminpalli, Proddatur, AP 516360
 
 *BULK ORDER DETAILS:*
 ${productDetails}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Star, ShoppingBag, Check, Shield, Sparkles, ArrowRight } from 'lucide-react';
 import { Product } from '../types';
-import { formatINR, calculateDiscount } from '../utils/format';
+import { formatINR, calculateDiscount, normalizeImageUrl } from '../utils/format';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -63,7 +63,7 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({
           <div className="p-6 bg-[#f4eee5] flex flex-col justify-between">
             <div className="relative aspect-square w-full rounded-xl overflow-hidden bg-white shadow-xs mb-4">
               <img
-                src={product.images[activeImageIdx] || currentColor.image}
+                src={normalizeImageUrl(product.images[activeImageIdx] || currentColor.image)}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
@@ -85,7 +85,7 @@ export const QuickViewModal: React.FC<QuickViewModalProps> = ({
                     activeImageIdx === i ? 'border-[#8b4513] ring-1 ring-[#8b4513]' : 'border-transparent opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <img src={img} alt="thumb" className="w-full h-full object-cover" />
+                  <img src={normalizeImageUrl(img)} alt="thumb" className="w-full h-full object-cover" />
                 </button>
               ))}
             </div>

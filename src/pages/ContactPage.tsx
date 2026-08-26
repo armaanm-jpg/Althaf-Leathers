@@ -44,24 +44,24 @@ export const ContactPage: React.FC = () => {
 
   const faqs = [
     {
-      q: 'Where are Althaf Leathers goods manufactured?',
-      a: 'All our products are 100% handcrafted in our dedicated artisan workshop located on Gandhi Road in Proddatur, Kadapa District, Andhra Pradesh. We do not outsource production or use automated assembly lines.'
+      q: 'Where are Althaf Leathers goods manufactured and showcased?',
+      a: 'All our products are 100% handcrafted in our dedicated artisan showroom and atelier located at 15/1154, Modampalli Street, Nadminpalli, Proddatur, Andhra Pradesh 516360. We do not outsource production.'
     },
     {
-      q: 'How do I care for my vegetable-tanned leather product?',
-      a: 'Vegetable-tanned leather develops a beautiful patina over time. Keep it away from prolonged direct water exposure. If wet, wipe with a dry cloth and allow to air dry naturally. Apply natural beeswax leather balm once or twice a year.'
+      q: 'How do I care for my leather product?',
+      a: 'Keep it away from prolonged direct water exposure. If wet, wipe with a dry cloth and allow to air dry naturally. Apply natural leather balm once or twice a year.'
     },
     {
-      q: 'What is included in the Lifetime Stitch Guarantee?',
-      a: 'If any saddle-stitch thread comes loose or a solid brass rivet fails during normal lifetime usage, ship it back to our Proddatur atelier. Our craftsmen will re-stitch and repair it free of charge.'
+      q: 'What is included in the Stitch Guarantee?',
+      a: 'If any saddle-stitch thread comes loose or a solid rivet fails during normal lifetime usage, reach out to our Proddatur showroom. Our craftsmen will re-stitch and repair it free of charge.'
     },
     {
       q: 'How long does shipping take across India?',
-      a: 'Standard courier transit takes 3–5 business days to metro cities (Bengaluru, Hyderabad, Chennai, Mumbai, Delhi). Orders over ₹5,000 qualify for free express delivery.'
+      a: 'Standard courier transit takes 3–5 business days to metro cities (Bengaluru, Hyderabad, Chennai, Mumbai, Delhi). Orders qualify for direct Proddatur dispatch.'
     },
     {
       q: 'Do you accept corporate bulk orders and customized client gifting?',
-      a: 'Yes! We specialize in executive corporate gifts, custom logo branding, and bespoke packaging for bulk orders starting at 10 units with tiered discounts up to 25%.'
+      a: 'Yes! We specialize in executive corporate gifts, custom branding, and bespoke packaging for bulk orders starting at 10 units with tiered discounts.'
     }
   ];
 
@@ -197,16 +197,16 @@ export const ContactPage: React.FC = () => {
           )}
         </div>
 
-        {/* Workshop Location & Info (5 cols) */}
+        {/* Showroom Location & Info (5 cols) */}
         <div className="lg:col-span-5 space-y-6">
           
           <div className="bg-[#231f1c] text-[#faf8f5] rounded-3xl p-6 sm:p-8 border border-[#3d332b] shadow-md space-y-6">
             <div>
               <span className="text-xs uppercase tracking-widest font-bold text-[#c19a6b]">
-                Visit Our Showroom & Workshop
+                Visit Our Showroom
               </span>
               <h3 className="font-serif text-2xl font-bold mt-1">
-                Althaf Leathers Atelier
+                Althaf Leathers Showroom
               </h3>
             </div>
 
@@ -214,23 +214,23 @@ export const ContactPage: React.FC = () => {
               <div className="flex items-start gap-3.5">
                 <MapPin className="w-5 h-5 text-[#c19a6b] shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold text-white">Gandhi Road, Near Bullion Market</p>
-                  <p className="text-[#a89b8d]">Proddatur, Kadapa District, Andhra Pradesh 516360, India</p>
+                  <p className="font-bold text-white">15/1154, Modampalli Street</p>
+                  <p className="text-[#a89b8d]">Nadminpalli, Proddatur, Andhra Pradesh 516360, India</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3.5">
                 <Phone className="w-5 h-5 text-[#c19a6b] shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold text-white">+91 82476 77511</p>
-                  <p className="text-[#a89b8d]">Direct Atelier Phone & WhatsApp Support</p>
+                  <p className="font-bold text-white">+91 73865 00505</p>
+                  <p className="text-[#a89b8d]">Direct Showroom Phone & WhatsApp Support</p>
                 </div>
               </div>
 
               <div className="flex items-start gap-3.5">
                 <Mail className="w-5 h-5 text-[#c19a6b] shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold text-white">atelier@althafleathers.com</p>
+                  <a href="mailto:althafleathers5@gmail.com" className="font-bold text-white hover:text-[#c19a6b] transition">althafleathers5@gmail.com</a>
                   <p className="text-[#a89b8d]">Official Support & Inquiries</p>
                 </div>
               </div>
@@ -238,23 +238,31 @@ export const ContactPage: React.FC = () => {
               <div className="flex items-start gap-3.5">
                 <Clock className="w-5 h-5 text-[#c19a6b] shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold text-white">Monday – Saturday: 9:30 AM – 7:30 PM IST</p>
-                  <p className="text-[#a89b8d]">Sunday: By Prior Appointment Only</p>
+                  <p className="font-bold text-white">Monday – Saturday: 9:30 AM – 8:30 PM IST</p>
+                  <p className="text-[#a89b8d]">Sunday: 10:00 AM – 7:00 PM IST</p>
                 </div>
               </div>
             </div>
 
-            {/* Atelier Image */}
-            <div className="relative aspect-16/9 rounded-2xl overflow-hidden border border-white/10">
-              <img
-                src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=600&auto=format&fit=crop"
-                alt="Proddatur Leather Workshop Atelier"
-                className="w-full h-full object-cover"
+            {/* Google Maps Location Embed */}
+            <div className="relative aspect-16/10 rounded-2xl overflow-hidden border border-white/15 bg-[#14100e]">
+              <iframe
+                title="Althaf Leathers Showroom Location"
+                src="https://maps.google.com/maps?q=15/1154,+Modampalli+Street,+Nadminpalli,+Proddatur,+Andhra+Pradesh+516360&t=&z=16&ie=UTF8&iwloc=&output=embed"
+                className="w-full h-full border-0"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <span className="absolute bottom-3 left-3 text-[11px] font-semibold text-white">
-                Proddatur Workshop Bench #4
-              </span>
+              <div className="absolute bottom-2 right-2">
+                <a
+                  href="https://www.google.com/maps/search/?api=1&query=15/1154,+Modampalli+Street,+Nadminpalli,+Proddatur,+516360"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1 bg-[#231f1c]/90 hover:bg-[#8b4513] text-[#faf8f5] rounded-md text-[11px] font-semibold tracking-wide backdrop-blur-xs transition border border-white/20 inline-flex items-center gap-1 shadow-md"
+                >
+                  <MapPin className="w-3 h-3 text-[#c19a6b]" /> Open in Maps
+                </a>
+              </div>
             </div>
           </div>
 

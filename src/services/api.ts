@@ -1,4 +1,5 @@
 import { Product, CategoryMeta, HomePageConfig } from '../types';
+import { getAdminToken, setAdminToken, clearAdminSession } from '../utils/session';
 
 export interface DbStats {
   productCount: number;
@@ -14,16 +15,21 @@ export interface AdminAuthStatus {
   username: string;
   updatedAt: string;
   lastLoginAt?: string;
+  hasActiveSession?: boolean;
 }
 
-// Base fetch helper with error handling
+// Base fetch helper with error handling & Admin Authorization Header
 async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  const token = getAdminToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}`, 'x-admin-token': token } : {}),
+    ...(options?.headers as Record<string, string> || {}),
+  };
+
   const response = await fetch(endpoint, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
     ...options,
+    headers,
   });
 
   const data = await response.json();
@@ -137,14 +143,47 @@ export async function updateSiteConfigApi(config: HomePageConfig): Promise<HomeP
   return res.config;
 }
 
-// ----------------- Authentication & Credential Storage API -----------------
+// ----------------- Authentication & Session Management API -----------------
 
-export async function adminLoginApi(passcode: string): Promise<{ success: boolean; username: string }> {
-  const res = await request<{ success: boolean; username: string; message: string }>('/api/auth/login', {
+export async function adminLoginApi(passcode: string): Promise<{ success: boolean; username: string; token?: string }> {
+  const res = await request<{ success: boolean; username: string; token?: string; message: string }>('/api/auth/login', {
     method: 'POST',
     body: JSON.stringify({ passcode }),
   });
-  return { success: res.success, username: res.username };
+  if (res.token) {
+    setAdminToken(res.token);
+  }
+  return { success: res.success, username: res.username, token: res.token };
+}
+
+export async function validateAdminSessionApi(): Promise<{ valid: boolean; username?: string }> {
+  const token = getAdminToken();
+  if (!token) return { valid: false };
+  try {
+    const res = await request<{ success: boolean; valid: boolean; username?: string }>('/api/auth/validate-session', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+    return { valid: res.valid, username: res.username };
+  } catch {
+    return { valid: false };
+  }
+}
+
+export async function adminLogoutApi(): Promise<void> {
+  const token = getAdminToken();
+  try {
+    if (token) {
+      await request('/api/auth/logout', {
+        method: 'POST',
+        body: JSON.stringify({ token }),
+      });
+    }
+  } catch {
+    // ignore
+  } finally {
+    clearAdminSession();
+  }
 }
 
 export async function changeAdminPasscodeApi(currentPasscode: string, newPasscode: string): Promise<string> {
@@ -165,10 +204,23 @@ export async function getAdminAuthStatusApi(): Promise<AdminAuthStatus> {
   };
 }
 
+// ----------------- User Session Synchronization API -----------------
+
+export async function syncUserSessionApi(sessionId: string, sessionData: any): Promise<void> {
+  try {
+    await request('/api/session/sync', {
+      method: 'POST',
+      body: JSON.stringify({ sessionId, ...sessionData }),
+    });
+  } catch (err) {
+    console.debug('[Session] Offline session mode:', err);
+  }
+}
+
 // ----------------- Orders & SQLite Diagnostics -----------------
 
 export async function logOrderInquiryApi(entry: {
-  type: 'checkout_order' | 'bulk_inquiry';
+  type: 'checkout_order' | 'bulk_inquiry' | 'contact_message';
   referenceCode: string;
   customerName?: string;
   phone?: string;

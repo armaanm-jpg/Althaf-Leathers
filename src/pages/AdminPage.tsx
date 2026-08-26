@@ -40,11 +40,14 @@ import {
   HardDrive,
   RefreshCw,
   Clock,
-  UserCheck
+  UserCheck,
+  Upload,
+  Camera
 } from 'lucide-react';
 import { Product, ProductCategory, LeatherType, ColorVariant, HomePageConfig, CategoryMeta } from '../types';
 import { DEFAULT_CATEGORIES, CATEGORY_IMAGE_PRESETS } from '../data/categories';
-import { formatINR } from '../utils/format';
+import { LEATHER_COLOR_PALETTE, LeatherColorPreset } from '../data/colors';
+import { formatINR, normalizeImageUrl } from '../utils/format';
 import {
   adminLoginApi,
   changeAdminPasscodeApi,
@@ -282,8 +285,41 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
   const handleOpenEditProduct = (product: Product) => {
     setIsNewProduct(false);
-    setFormData({ ...product });
-    setSizesInput(product.sizes ? product.sizes.join(', ') : '');
+    const safeProduct: Product = {
+      id: product.id || `prod-${Date.now()}`,
+      name: product.name || '',
+      tagline: product.tagline || '',
+      category: product.category || 'Bags',
+      price: typeof product.price === 'number' ? product.price : Number(product.price) || 0,
+      originalPrice: product.originalPrice ? Number(product.originalPrice) : undefined,
+      rating: product.rating || 5.0,
+      reviewCount: product.reviewCount || 0,
+      badge: product.badge,
+      leatherType: product.leatherType || 'Full-Grain',
+      colors: Array.isArray(product.colors) && product.colors.length > 0 ? product.colors : [
+        {
+          name: 'Classic Tan',
+          hex: '#c19a6b',
+          image: (Array.isArray(product.images) && product.images[0]) || 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=1000&auto=format&fit=crop'
+        }
+      ],
+      sizes: Array.isArray(product.sizes) ? product.sizes : [],
+      dimensions: product.dimensions || '',
+      weight: product.weight || '',
+      hardware: product.hardware || 'Solid Antiqued Brass Buckles & Snaps',
+      lining: product.lining || 'Durable 100% Natural Cotton Twill in Olive Khaki',
+      description: product.description || '',
+      features: Array.isArray(product.features) ? product.features : [],
+      craftsmanshipNotes: Array.isArray(product.craftsmanshipNotes) ? product.craftsmanshipNotes : [],
+      careInstructions: Array.isArray(product.careInstructions) ? product.careInstructions : [],
+      images: Array.isArray(product.images) && product.images.length > 0 ? product.images : [
+        'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=1000&auto=format&fit=crop'
+      ],
+      isFeatured: Boolean(product.isFeatured),
+      inStock: product.inStock !== false,
+    };
+    setFormData(safeProduct);
+    setSizesInput(safeProduct.sizes && safeProduct.sizes.length > 0 ? safeProduct.sizes.join(', ') : '');
     setIsEditingModalOpen(true);
   };
 
@@ -299,10 +335,38 @@ export const AdminPage: React.FC<AdminPageProps> = ({
       .map((s) => s.trim())
       .filter(Boolean);
 
+    const primaryImg =
+      (formData.images && formData.images.length > 0 && formData.images[0]) ||
+      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=1000&auto=format&fit=crop';
+
+    // Normalize colors array ensuring each variant has a valid image matching the uploaded photos
+    const normalizedColors: ColorVariant[] =
+      formData.colors && formData.colors.length > 0
+        ? formData.colors.map((c) => ({
+            name: c.name || 'Classic Tan',
+            hex: c.hex || '#c19a6b',
+            image: c.image && c.image.trim() ? c.image : primaryImg,
+          }))
+        : [
+            {
+              name: 'Classic Tan',
+              hex: '#c19a6b',
+              image: primaryImg,
+            },
+          ];
+
+    const finalImages =
+      formData.images && formData.images.length > 0 ? formData.images : [primaryImg];
+
     const productToSave: Product = {
       ...formData,
+      images: finalImages,
+      colors: normalizedColors,
       sizes: cleanedSizes.length > 0 ? cleanedSizes : undefined,
-      id: isNewProduct && !formData.id ? formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') : formData.id,
+      id:
+        isNewProduct && !formData.id
+          ? formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+          : formData.id,
     };
 
     onSaveProduct(productToSave, isNewProduct);
@@ -310,95 +374,203 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     showToast(`✓ "${productToSave.name}" ${isNewProduct ? 'added' : 'updated'} successfully!`);
   };
 
+  // Direct file upload handler with auto-compression for fast loading & compact storage
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!file) continue;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const rawResult = event.target?.result as string;
+        if (!rawResult) return;
+
+        // Auto-optimize using HTML canvas for crisp, fast-loading e-commerce imagery
+        const img = new Image();
+        img.onload = () => {
+          const maxDimension = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const optimizedResult = canvas.toDataURL('image/jpeg', 0.86);
+
+            setFormData((prev) => {
+              const currentImages = prev.images || [];
+              const newImages = [...currentImages, optimizedResult];
+              const updatedColors = (prev.colors || []).map((col, idx) => {
+                if (idx === 0 && (!col.image || col.image.includes('unsplash.com/photo-1548036328'))) {
+                  return { ...col, image: optimizedResult };
+                }
+                return col;
+              });
+              return {
+                ...prev,
+                images: newImages,
+                colors:
+                  updatedColors.length > 0
+                    ? updatedColors
+                    : [{ name: 'Classic Tan', hex: '#c19a6b', image: optimizedResult }],
+              };
+            });
+            showToast('✓ Photo optimized & uploaded successfully!');
+          } else {
+            // Fallback to raw data URI if canvas context is unavailable
+            setFormData((prev) => ({
+              ...prev,
+              images: [...(prev.images || []), rawResult],
+            }));
+            showToast('✓ Photo uploaded successfully!');
+          }
+        };
+        img.src = rawResult;
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   // Color variant handlers
-  const handleAddColor = () => {
+  const handleAddColor = (preset?: LeatherColorPreset) => {
+    const primaryImg =
+      (formData.images && formData.images.length > 0 && formData.images[0]) ||
+      'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=1000&auto=format&fit=crop';
+
+    const colorName = preset?.name || 'Tan';
+    const colorHex = preset?.hex || '#C19A6B';
+
     setFormData((prev) => ({
       ...prev,
       colors: [
-        ...prev.colors,
+        ...(prev.colors || []),
         {
-          name: 'Espresso Brown',
-          hex: '#3b2f2f',
-          image: prev.images[0] || 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=1000&auto=format&fit=crop'
-        }
-      ]
+          name: colorName,
+          hex: colorHex,
+          image: primaryImg,
+        },
+      ],
     }));
   };
 
-  const handleUpdateColor = (index: number, field: keyof ColorVariant, value: string) => {
+  const handleApplyColorPreset = (index: number, presetName: string) => {
+    const found = LEATHER_COLOR_PALETTE.find((c) => c.name === presetName);
+    if (!found) return;
     setFormData((prev) => {
-      const updated = [...prev.colors];
-      updated[index] = { ...updated[index], [field]: value };
+      const updated = [...(prev.colors || [])];
+      if (updated[index]) {
+        updated[index] = { ...updated[index], name: found.name, hex: found.hex };
+      }
+      return { ...prev, colors: updated };
+    });
+  };
+
+  const handleUpdateColor = (index: number, field: keyof ColorVariant, value: string) => {
+    const finalValue = field === 'image' ? normalizeImageUrl(value) : value;
+    setFormData((prev) => {
+      const updated = [...(prev.colors || [])];
+      if (updated[index]) {
+        updated[index] = { ...updated[index], [field]: finalValue };
+      }
       return { ...prev, colors: updated };
     });
   };
 
   const handleRemoveColor = (index: number) => {
-    if (formData.colors.length <= 1) {
+    if ((formData.colors || []).length <= 1) {
       alert('Product must have at least one color variant');
       return;
     }
     setFormData((prev) => ({
       ...prev,
-      colors: prev.colors.filter((_, i) => i !== index)
+      colors: (prev.colors || []).filter((_, i) => i !== index),
     }));
   };
 
-  // Image handlers
+  // Image handlers with auto Google Drive normalization
   const handleAddImage = (urlToAdd?: string) => {
-    const url = urlToAdd || newImageUrl.trim();
-    if (url) {
-      setFormData((prev) => ({
-        ...prev,
-        images: [...prev.images, url]
-      }));
+    const rawUrl = urlToAdd || newImageUrl.trim();
+    if (rawUrl) {
+      const normalizedUrl = normalizeImageUrl(rawUrl);
+      setFormData((prev) => {
+        const nextImages = [...(prev.images || []), normalizedUrl];
+        // If first color has no image or generic fallback, assign this normalized image
+        const nextColors = (prev.colors || []).map((c, i) => {
+          if (i === 0 && (!c.image || c.image.includes('unsplash.com/photo-1548036328'))) {
+            return { ...c, image: normalizedUrl };
+          }
+          return c;
+        });
+        return {
+          ...prev,
+          images: nextImages,
+          colors: nextColors.length > 0 ? nextColors : prev.colors,
+        };
+      });
       setNewImageUrl('');
+      showToast('✓ Photo added & formatted successfully!');
     }
   };
 
   const handleRemoveImage = (index: number) => {
-    if (formData.images.length <= 1) {
+    if ((formData.images || []).length <= 1) {
       alert('Product must have at least one image');
       return;
     }
     setFormData((prev) => ({
       ...prev,
-      images: prev.images.filter((_, i) => i !== index)
+      images: (prev.images || []).filter((_, i) => i !== index),
     }));
   };
 
   // Dynamic Bullet lists
   const handleAddFeature = () => {
     if (newFeature.trim()) {
-      setFormData((prev) => ({ ...prev, features: [...prev.features, newFeature.trim()] }));
+      setFormData((prev) => ({ ...prev, features: [...(prev.features || []), newFeature.trim()] }));
       setNewFeature('');
     }
   };
 
   const handleRemoveFeature = (idx: number) => {
-    setFormData((prev) => ({ ...prev, features: prev.features.filter((_, i) => i !== idx) }));
+    setFormData((prev) => ({ ...prev, features: (prev.features || []).filter((_, i) => i !== idx) }));
   };
 
   const handleAddCraftNote = () => {
     if (newCraftNote.trim()) {
-      setFormData((prev) => ({ ...prev, craftsmanshipNotes: [...prev.craftsmanshipNotes, newCraftNote.trim()] }));
+      setFormData((prev) => ({ ...prev, craftsmanshipNotes: [...(prev.craftsmanshipNotes || []), newCraftNote.trim()] }));
       setNewCraftNote('');
     }
   };
 
   const handleRemoveCraftNote = (idx: number) => {
-    setFormData((prev) => ({ ...prev, craftsmanshipNotes: prev.craftsmanshipNotes.filter((_, i) => i !== idx) }));
+    setFormData((prev) => ({ ...prev, craftsmanshipNotes: (prev.craftsmanshipNotes || []).filter((_, i) => i !== idx) }));
   };
 
   const handleAddCareNote = () => {
     if (newCareNote.trim()) {
-      setFormData((prev) => ({ ...prev, careInstructions: [...prev.careInstructions, newCareNote.trim()] }));
+      setFormData((prev) => ({ ...prev, careInstructions: [...(prev.careInstructions || []), newCareNote.trim()] }));
       setNewCareNote('');
     }
   };
 
   const handleRemoveCareNote = (idx: number) => {
-    setFormData((prev) => ({ ...prev, careInstructions: prev.careInstructions.filter((_, i) => i !== idx) }));
+    setFormData((prev) => ({ ...prev, careInstructions: (prev.careInstructions || []).filter((_, i) => i !== idx) }));
   };
 
   // Security Handlers
@@ -434,6 +606,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
   const handleAdminLogout = () => {
     sessionStorage.removeItem('althaf_admin_auth');
+    sessionStorage.removeItem('althaf_admin_session_token');
+    localStorage.removeItem('althaf_admin_session_token');
     setIsAuthenticated(false);
     showToast('Admin session locked securely.');
   };
@@ -1071,9 +1245,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     <input
                       id="admin-whatsapp-number-input"
                       type="text"
-                      value={localHomeConfig.whatsappNumber ?? '918247677511'}
+                      value={localHomeConfig.whatsappNumber ?? '917386500505'}
                       onChange={(e) => setLocalHomeConfig((prev) => ({ ...prev, whatsappNumber: e.target.value }))}
-                      placeholder="e.g. 918247677511"
+                      placeholder="e.g. 917386500505"
                       className="w-full p-3 bg-white border border-[#9fd3ad] rounded-xl text-sm font-semibold text-[#1a1614] focus:outline-none focus:border-[#25D366]"
                     />
                     
@@ -1104,7 +1278,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       }
                       return (
                         <p className="text-[11px] text-[#52795c] mt-1">
-                          Include country code + 10-digit mobile (e.g. <code>918247677511</code> for India +91 82476 77511).
+                          Include country code + 10-digit mobile (e.g. <code>917386500505</code> for India +91 73865 00505).
                         </p>
                       );
                     })()}
@@ -1125,7 +1299,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
                     <a
                       id="admin-test-whatsapp-link"
-                      href={`https://api.whatsapp.com/send?phone=${(localHomeConfig.whatsappNumber || '918247677511').replace(/\D/g, '')}&text=${encodeURIComponent('Hello Althaf Leathers! Testing store WhatsApp integration.')}`}
+                      href={`https://api.whatsapp.com/send?phone=${(localHomeConfig.whatsappNumber || '917386500505').replace(/\D/g, '')}&text=${encodeURIComponent('Hello Althaf Leathers! Testing store WhatsApp integration.')}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-[#25D366] hover:bg-[#1faa4b] text-white rounded-lg text-xs font-bold transition shadow-xs"
@@ -1248,7 +1422,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       },
                       {
                         label: 'Bulk Buying & Wholesale',
-                        text: 'BULK ORDERS & CORPORATE GIFTING • WHATSAPP +91 82476 77511 FOR QUOTES',
+                        text: 'BULK ORDERS & CORPORATE GIFTING • WHATSAPP +91 73865 00505 FOR QUOTES',
                         loc: 'DIRECT ATELIER',
                         badge: 'BULK SAVINGS',
                       },
@@ -2031,34 +2205,102 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
               {/* SECTION 2: COLOR VARIANTS */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-[#e8dfd3] pb-2">
-                  <h3 className="font-serif text-lg font-bold text-[#1a1614]">
-                    2. Color Variants ({formData.colors.length})
-                  </h3>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#e8dfd3] pb-2 gap-2">
+                  <div>
+                    <h3 className="font-serif text-lg font-bold text-[#1a1614]">
+                      2. Color Variants ({(formData.colors || []).length})
+                    </h3>
+                    <p className="text-xs text-[#8c7b6d]">
+                      Select from our 18 authentic leather colors or customize hex & names.
+                    </p>
+                  </div>
                   <button
                     type="button"
-                    onClick={handleAddColor}
+                    onClick={() => handleAddColor()}
                     className="text-xs font-bold text-[#8b4513] hover:text-[#5c2d0c] flex items-center gap-1 cursor-pointer"
                   >
-                    <Plus className="w-3.5 h-3.5" /> Add Color Variant
+                    <Plus className="w-3.5 h-3.5" /> Add Blank Variant
                   </button>
                 </div>
 
+                {/* Quick 18 Leather Colors Palette Swatches */}
+                <div className="p-4 bg-[#ede5da]/70 rounded-2xl border border-[#ded4c6] space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#8b4513] flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5" /> 18 Standard Atelier Leather Colors (Click to Add):
+                    </span>
+                    <span className="text-[10px] text-[#73665a]">
+                      Curated vegetable tanned tones
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+                    {LEATHER_COLOR_PALETTE.map((c) => {
+                      const alreadyAdded = (formData.colors || []).some(
+                        (existing) => existing.name.toLowerCase() === c.name.toLowerCase()
+                      );
+                      return (
+                        <button
+                          key={c.name}
+                          type="button"
+                          onClick={() => handleAddColor(c)}
+                          className={`p-2 rounded-xl text-left border transition cursor-pointer flex items-center gap-2 group ${
+                            alreadyAdded
+                              ? 'bg-white/90 border-[#c19a6b] ring-1 ring-[#c19a6b]/40 shadow-xs'
+                              : 'bg-white/70 hover:bg-white border-[#ded4c6] hover:border-[#8b4513]'
+                          }`}
+                          title={`Add ${c.name} (${c.category})`}
+                        >
+                          <span
+                            className="w-4 h-4 rounded-full border border-black/20 shrink-0 shadow-2xs group-hover:scale-110 transition-transform"
+                            style={{ backgroundColor: c.hex }}
+                          />
+                          <div className="min-w-0 leading-tight">
+                            <p className="text-[11px] font-bold text-[#1a1614] truncate">
+                              {c.name}
+                            </p>
+                            <p className="text-[9px] text-[#8c7b6d] truncate">
+                              {c.category}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Active Color Variants Rows */}
                 <div className="space-y-3">
-                  {formData.colors.map((color, idx) => (
+                  {(formData.colors || []).map((color, idx) => (
                     <div
                       key={idx}
                       className="p-4 bg-white rounded-xl border border-[#e8dfd3] shadow-2xs grid grid-cols-1 sm:grid-cols-12 gap-3 items-center"
                     >
                       <div className="sm:col-span-4">
-                        <label className="block text-[10px] font-bold uppercase text-[#8c7b6d] mb-0.5">Color Name</label>
-                        <input
-                          type="text"
-                          value={color.name}
-                          onChange={(e) => handleUpdateColor(idx, 'name', e.target.value)}
-                          placeholder="e.g. Heritage Tan"
-                          className="w-full p-2 bg-[#f4eee5] border border-[#ded4c6] rounded-lg text-xs font-semibold"
-                        />
+                        <label className="block text-[10px] font-bold uppercase text-[#8c7b6d] mb-0.5">
+                          Color Preset / Name
+                        </label>
+                        <div className="space-y-1">
+                          <select
+                            value={color.name}
+                            onChange={(e) => handleApplyColorPreset(idx, e.target.value)}
+                            className="w-full p-1.5 bg-[#f4eee5] border border-[#ded4c6] rounded-lg text-xs font-semibold text-[#1a1614]"
+                          >
+                            <option value="">Choose standard color preset...</option>
+                            {LEATHER_COLOR_PALETTE.map((p) => (
+                              <option key={p.name} value={p.name}>
+                                {p.emoji} {p.name} — {p.category}
+                              </option>
+                            ))}
+                          </select>
+                          <input
+                            type="text"
+                            value={color.name || ''}
+                            onChange={(e) => handleUpdateColor(idx, 'name', e.target.value)}
+                            placeholder="e.g. Tan or Custom Name"
+                            className="w-full p-1.5 bg-[#f4eee5] border border-[#ded4c6] rounded-lg text-xs font-semibold"
+                          />
+                        </div>
                       </div>
 
                       <div className="sm:col-span-2">
@@ -2066,13 +2308,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                         <div className="flex items-center gap-1.5">
                           <input
                             type="color"
-                            value={color.hex}
+                            value={color.hex || '#3b2f2f'}
                             onChange={(e) => handleUpdateColor(idx, 'hex', e.target.value)}
                             className="w-8 h-8 rounded-md border border-[#ded4c6] cursor-pointer"
                           />
                           <input
                             type="text"
-                            value={color.hex}
+                            value={color.hex || ''}
                             onChange={(e) => handleUpdateColor(idx, 'hex', e.target.value)}
                             className="w-16 p-1.5 bg-[#f4eee5] border border-[#ded4c6] rounded-lg text-[11px] font-mono"
                           />
@@ -2080,12 +2322,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                       </div>
 
                       <div className="sm:col-span-5">
-                        <label className="block text-[10px] font-bold uppercase text-[#8c7b6d] mb-0.5">Variant Image URL</label>
+                        <label className="block text-[10px] font-bold uppercase text-[#8c7b6d] mb-0.5">
+                          Variant Image URL (Google Drive / Web)
+                        </label>
                         <input
                           type="text"
-                          value={color.image}
+                          value={color.image || ''}
                           onChange={(e) => handleUpdateColor(idx, 'image', e.target.value)}
-                          placeholder="https://..."
+                          placeholder="https://drive.google.com/... or https://..."
                           className="w-full p-2 bg-[#f4eee5] border border-[#ded4c6] rounded-lg text-xs"
                         />
                       </div>
@@ -2105,24 +2349,80 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </div>
               </div>
 
-              {/* SECTION 3: PRODUCT IMAGES & PRESETS */}
+              {/* SECTION 3: PRODUCT IMAGES & FILE UPLOAD */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between border-b border-[#e8dfd3] pb-2">
                   <div>
                     <h3 className="font-serif text-lg font-bold text-[#1a1614]">
-                      3. Product Gallery Images ({formData.images.length})
+                      3. Product Photos & Images ({(formData.images || []).length})
                     </h3>
-                    <p className="text-xs text-[#8c7b6d]">At least 1 high-resolution product photo is required.</p>
+                    <p className="text-xs text-[#8c7b6d]">
+                      Upload photos directly from your phone/camera or paste Google Drive, Dropbox, or web links.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Direct Local File Upload Box */}
+                <div className="p-4 bg-[#faf7f2] rounded-2xl border-2 border-dashed border-[#ded4c6] hover:border-[#8b4513] transition text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#ede5da] text-[#8b4513] flex items-center justify-center mx-auto shadow-2xs">
+                    <Upload className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-xs sm:text-sm text-[#1a1614]">
+                      Upload Custom Photos from Device
+                    </p>
+                    <p className="text-[11px] text-[#73665a] mt-0.5">
+                      Supports JPG, PNG, WEBP from your phone camera or computer library
+                    </p>
+                  </div>
+                  <label className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#8b4513] hover:bg-[#70350d] text-white text-xs font-bold uppercase tracking-wider rounded-xl transition cursor-pointer shadow-xs">
+                    <Camera className="w-4 h-4" />
+                    <span>Choose Photos / Snap Picture</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* Add Image by URL Input with Google Drive auto-formatting */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#73665a]">
+                      Or Add by Google Drive / Web URL:
+                    </label>
+                    <span className="text-[10px] text-[#8b4513] font-semibold">
+                      Google Drive links (view/sharing) auto-convert to direct photos!
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={newImageUrl}
+                      onChange={(e) => setNewImageUrl(e.target.value)}
+                      placeholder="Paste link (Google Drive https://drive.google.com/file/d/..., Dropbox, Unsplash...)"
+                      className="flex-1 p-3 bg-white border border-[#ded4c6] rounded-xl text-xs sm:text-sm focus:outline-none focus:border-[#8b4513]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleAddImage()}
+                      className="px-5 py-3 bg-[#231f1c] hover:bg-[#8b4513] text-white text-xs font-bold uppercase rounded-xl transition cursor-pointer shrink-0"
+                    >
+                      Add Photo Link
+                    </button>
                   </div>
                 </div>
 
                 {/* Quick Presets for Fast Addition */}
                 <div className="p-3.5 bg-[#ede5da]/60 rounded-xl border border-[#ded4c6] space-y-2">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-[#8b4513] block">
-                    Quick Photo Library (Click to Add Photo):
+                    Quick Sample Presets Library:
                   </span>
                   <div className="flex flex-wrap gap-2">
-                    {SAMPLE_IMAGE_PRESETS.filter((p) => p.category === formData.category || formData.images.length === 0).map((preset, i) => (
+                    {SAMPLE_IMAGE_PRESETS.filter((p) => p.category === formData.category || (formData.images || []).length === 0).map((preset, i) => (
                       <button
                         key={i}
                         type="button"
@@ -2135,27 +2435,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   </div>
                 </div>
 
-                {/* Add Image by URL Input */}
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    value={newImageUrl}
-                    onChange={(e) => setNewImageUrl(e.target.value)}
-                    placeholder="Paste image URL (https://images.unsplash.com/...)"
-                    className="flex-1 p-3 bg-white border border-[#ded4c6] rounded-xl text-xs sm:text-sm focus:outline-none focus:border-[#8b4513]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => handleAddImage()}
-                    className="px-5 py-3 bg-[#231f1c] hover:bg-[#8b4513] text-white text-xs font-bold uppercase rounded-xl transition cursor-pointer shrink-0"
-                  >
-                    Add Photo
-                  </button>
-                </div>
-
                 {/* Images Preview Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {formData.images.map((imgUrl, i) => (
+                  {(formData.images || []).map((imgUrl, i) => (
                     <div key={i} className="relative group rounded-xl overflow-hidden border border-[#ded4c6] bg-white aspect-square shadow-2xs">
                       <img src={imgUrl} alt={`Product ${i}`} className="w-full h-full object-cover" />
                       <button
@@ -2206,7 +2488,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={formData.dimensions}
+                      value={formData.dimensions || ''}
                       onChange={(e) => setFormData({ ...formData, dimensions: e.target.value })}
                       placeholder="e.g. 38 cm × 28 cm × 10 cm"
                       className="w-full p-3 bg-white border border-[#ded4c6] rounded-xl text-sm focus:outline-none focus:border-[#8b4513]"
@@ -2219,7 +2501,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={formData.weight}
+                      value={formData.weight || ''}
                       onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
                       placeholder="e.g. 780 g (pair)"
                       className="w-full p-3 bg-white border border-[#ded4c6] rounded-xl text-sm focus:outline-none focus:border-[#8b4513]"
@@ -2232,7 +2514,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={formData.hardware}
+                      value={formData.hardware || ''}
                       onChange={(e) => setFormData({ ...formData, hardware: e.target.value })}
                       placeholder="e.g. Solid Antiqued Brass Buckles & YKK Excella Zippers"
                       className="w-full p-3 bg-white border border-[#ded4c6] rounded-xl text-sm focus:outline-none focus:border-[#8b4513]"
@@ -2245,7 +2527,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                     </label>
                     <input
                       type="text"
-                      value={formData.lining}
+                      value={formData.lining || ''}
                       onChange={(e) => setFormData({ ...formData, lining: e.target.value })}
                       placeholder="e.g. Breathable sheepskin lining or 100% Cotton Twill"
                       className="w-full p-3 bg-white border border-[#ded4c6] rounded-xl text-sm focus:outline-none focus:border-[#8b4513]"
@@ -2266,7 +2548,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   </label>
                   <textarea
                     rows={4}
-                    value={formData.description}
+                    value={formData.description || ''}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     placeholder="Describe how the leather is cut, its usability for daily life, and patina development..."
                     className="w-full p-3 bg-white border border-[#ded4c6] rounded-xl text-sm focus:outline-none focus:border-[#8b4513]"
@@ -2302,7 +2584,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   </div>
 
                   <div className="space-y-1.5 pt-1">
-                    {formData.features.map((feat, i) => (
+                    {(formData.features || []).map((feat, i) => (
                       <div key={i} className="flex items-center justify-between p-2 bg-white rounded-lg border border-[#e8dfd3] text-xs">
                         <span>• {feat}</span>
                         <button
@@ -2346,7 +2628,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   </div>
 
                   <div className="space-y-1.5 pt-1">
-                    {formData.craftsmanshipNotes.map((note, i) => (
+                    {(formData.craftsmanshipNotes || []).map((note, i) => (
                       <div key={i} className="flex items-center justify-between p-2 bg-white rounded-lg border border-[#e8dfd3] text-xs">
                         <span>• {note}</span>
                         <button
@@ -2390,7 +2672,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                   </div>
 
                   <div className="space-y-1.5 pt-1">
-                    {formData.careInstructions.map((note, i) => (
+                    {(formData.careInstructions || []).map((note, i) => (
                       <div key={i} className="flex items-center justify-between p-2 bg-white rounded-lg border border-[#e8dfd3] text-xs">
                         <span>• {note}</span>
                         <button

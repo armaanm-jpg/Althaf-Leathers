@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowRight, Sparkles, Shield, Award, CheckCircle2, ChevronRight, Star } from 'lucide-react';
 import { Product, ProductCategory, HomePageConfig, CategoryMeta } from '../types';
 import { ProductCard } from '../components/ProductCard';
-import { REVIEWS } from '../data/products';
+import { ReviewsSection } from '../components/ReviewsSection';
 import { formatINR } from '../utils/format';
 import { DEFAULT_CATEGORIES } from '../data/categories';
 
@@ -94,20 +94,13 @@ export const HomePage: React.FC<HomePageProps> = ({
             Everyday leather goods crafted in Proddatur, Andhra Pradesh. Honest, budget-friendly satchels, wallets, and belts designed for daily utility.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+          <div className="flex items-center justify-center pt-4">
             <button
               id="hero-shop-collection-btn"
               onClick={() => onNavigateToShop('All')}
-              className="w-full sm:w-auto px-8 py-4 bg-[#c19a6b] hover:bg-[#d8af7e] text-[#1a1614] rounded-xl font-bold text-sm tracking-wider uppercase transition shadow-xl hover:shadow-2xl flex items-center justify-center gap-2.5 cursor-pointer"
+              className="w-full sm:w-auto px-10 py-4 bg-[#c19a6b] hover:bg-[#d8af7e] text-[#1a1614] rounded-xl font-bold text-sm tracking-wider uppercase transition shadow-xl hover:shadow-2xl flex items-center justify-center gap-2.5 cursor-pointer"
             >
               Shop Collection <ArrowRight className="w-4 h-4" />
-            </button>
-            <button
-              id="hero-read-story-btn"
-              onClick={onNavigateToStory}
-              className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 text-[#faf8f5] rounded-xl font-semibold text-sm tracking-wider uppercase border border-white/20 backdrop-blur-sm transition flex items-center justify-center gap-2 cursor-pointer"
-            >
-              Our Story
             </button>
           </div>
 
@@ -246,13 +239,13 @@ export const HomePage: React.FC<HomePageProps> = ({
             <div className="bg-[#231f1c] text-[#faf8f5] rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between">
               <div className="space-y-2 relative z-10">
                 <span className="text-[10px] uppercase tracking-widest text-[#c19a6b] font-bold">
-                  The Art of Leather
+                  Leather Made Practical
                 </span>
                 <h4 className="font-serif text-xl font-bold leading-snug">
-                  Vegetable Tanned for Patina & Character
+                  Functional, Affordable & Made to Last
                 </h4>
                 <p className="text-xs text-[#b8ab9d] leading-relaxed">
-                  We use tree barks and natural tannins. As you carry your piece through daily routine, it records your personal journey.
+                  Thoughtfully crafted for everyday use, with practical designs, budget-friendly pricing, and reliable delivery across India.
                 </p>
               </div>
               <button
@@ -397,51 +390,9 @@ export const HomePage: React.FC<HomePageProps> = ({
         </div>
       </section>
 
-      {/* COLLECTOR REVIEWS & TESTIMONIALS */}
+      {/* COLLECTOR REVIEWS & PATRON TESTIMONIALS */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs uppercase tracking-widest font-bold text-[#8b4513]">
-            Verified Collectors
-          </span>
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#1a1614] mt-1">
-            Words from Discerning Owners
-          </h2>
-          <p className="text-sm text-[#6b5f54] mt-2">
-            Read real experiences from patrons across Bengaluru, Hyderabad, Mumbai, and Chennai.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {REVIEWS.map((rev) => (
-            <div
-              key={rev.id}
-              className="bg-white rounded-2xl p-6 border border-[#e8dfd3] shadow-xs flex flex-col justify-between space-y-4"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center gap-1">
-                  {[...Array(rev.rating)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 fill-[#c19a6b] text-[#c19a6b]" />
-                  ))}
-                </div>
-                <h4 className="font-serif text-base font-bold text-[#1a1614] leading-snug">
-                  "{rev.title}"
-                </h4>
-                <p className="text-xs text-[#6b5f54] leading-relaxed italic">
-                  {rev.comment}
-                </p>
-              </div>
-
-              <div className="pt-3 border-t border-[#f0e9df] text-xs">
-                <p className="font-bold text-[#1a1614]">{rev.author}</p>
-                <p className="text-[#8c7b6d]">{rev.location}</p>
-                <div className="flex items-center gap-1 text-[11px] text-[#2b6b3e] font-semibold mt-1">
-                  <CheckCircle2 className="w-3 h-3" />
-                  <span>Verified Purchase • {rev.productName}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <ReviewsSection onSelectProduct={onSelectProduct} allProducts={products} />
       </section>
 
       {/* CORPORATE / BESPOKE CALLOUT BANNER */}

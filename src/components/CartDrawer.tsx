@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Trash2, Plus, Minus, ShoppingBag, ShieldCheck, Tag, ArrowRight, Sparkles, MessageCircle } from 'lucide-react';
 import { CartItem } from '../types';
-import { formatINR } from '../utils/format';
+import { formatINR, normalizeImageUrl } from '../utils/format';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -132,10 +132,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 >
                   {/* Thumbnail */}
                   <img
-                    src={
+                    src={normalizeImageUrl(
                       item.product.colors.find((c) => c.name === item.selectedColor)?.image ||
                       item.product.images[0]
-                    }
+                    )}
                     alt={item.product.name}
                     className="w-20 h-20 object-cover rounded-lg bg-[#f5efe6] shrink-0"
                   />

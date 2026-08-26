@@ -248,9 +248,9 @@ function seedInitialData(database: Database): void {
         'signature-leather-tote',
       ],
       announcementText: 'NEW IN 2026 • EVERYDAY LEATHER ESSENTIALS FOR DAILY USE',
-      announcementLocation: 'PRODDATUR WORKSHOP',
+      announcementLocation: 'PRODDATUR SHOWROOM',
       announcementBadge: 'SIMPLE & HONEST VALUE',
-      whatsappNumber: '918247677511',
+      whatsappNumber: '917386500505',
     };
 
     const stmt = database.prepare(`
@@ -259,7 +259,7 @@ function seedInitialData(database: Database): void {
     `);
     stmt.run(['home_config', JSON.stringify(defaultHomeConfig), now]);
     stmt.free();
-    console.log('[SQLite] Seeded default home config & WhatsApp number (+91 82476 77511) into SQLite.');
+    console.log('[SQLite] Seeded default home config & WhatsApp number (+91 73865 00505) into SQLite.');
   }
 }
 
@@ -692,7 +692,7 @@ export async function getSiteConfig(): Promise<HomePageConfig> {
     heroProductId: 'heritage-satchel',
     bentoSecondaryId: 'classic-bifold-wallet',
     featuredProductIds: ['heritage-satchel', 'classic-bifold-wallet'],
-    whatsappNumber: '918247677511',
+    whatsappNumber: '917386500505',
   };
 }
 

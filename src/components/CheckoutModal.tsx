@@ -385,7 +385,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({
                 <span>Total: {formatINR(finalTotal)}</span>
               </div>
               <p className="text-[#6b5f54]">
-                Our craftsman on Gandhi Road, Proddatur will verify leather hide stock, dispatch timelines, and confirm tracking with you in the chat.
+                Our team at Modampalli Street, Proddatur will verify leather hide stock, dispatch timelines, and confirm tracking with you in the chat.
               </p>
             </div>
 

@@ -32,6 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
   homeConfig,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileCollectionsOpen, setMobileCollectionsOpen] = useState(false);
   const [collectionsDropdownOpen, setCollectionsDropdownOpen] = useState(false);
   const dropdownTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -106,32 +107,32 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           
           {/* Mobile menu trigger */}
           <div className="flex items-center lg:hidden">
             <button
               id="mobile-menu-toggle-btn"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-md text-[#231f1c] hover:text-[#8b4513] hover:bg-[#ede5da] transition"
+              className="p-2 rounded-xl text-[#231f1c] hover:text-[#8b4513] hover:bg-[#ede5da] transition"
               aria-label="Toggle navigation menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
 
-          {/* Brand Logo & Heritage Subtitle */}
-          <div className="flex-1 lg:flex-none text-center lg:text-left">
+          {/* Brand Logo & Subtitle */}
+          <div className="flex-1 lg:flex-none text-center lg:text-left px-1">
             <button
               id="brand-logo-btn"
               onClick={() => handleNavClick('home')}
               className="inline-flex flex-col items-center lg:items-start group text-left cursor-pointer"
             >
-              <span className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#1a1614] group-hover:text-[#8b4513] transition">
+              <span className="font-serif text-lg sm:text-2xl md:text-3xl font-bold tracking-tight text-[#1a1614] group-hover:text-[#8b4513] transition leading-tight">
                 ALTHAF LEATHERS
               </span>
-              <span className="text-[10px] tracking-[0.25em] text-[#8c7b6d] font-semibold uppercase -mt-0.5">
+              <span className="text-[9px] sm:text-[10px] tracking-[0.2em] text-[#8c7b6d] font-semibold uppercase -mt-0.5">
                 EST. 2026 • PRODDATUR
               </span>
             </button>
@@ -151,7 +152,7 @@ export const Header: React.FC<HeaderProps> = ({
               Home
             </button>
 
-            {/* Collections with Dropdown (Bags, Wallets, Belts, Shoes, Slippers inside) */}
+            {/* Collections with Dropdown */}
             <div
               className="relative"
               onMouseEnter={handleMouseEnter}
@@ -245,16 +246,16 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-[#4a423b] border-transparent hover:text-[#1a1614] hover:border-[#c19a6b]'
               }`}
             >
-              Atelier & Contact
+              Showroom & Contact
             </button>
           </nav>
 
-          {/* Action Icons (Bulk Buy, Search, Wishlist, Cart) */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Action Icons */}
+          <div className="flex items-center space-x-1 sm:space-x-2.5">
             <button
               id="navbar-bulk-buy-btn"
               onClick={onOpenBulkModal}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-[#8b4513]/10 hover:bg-[#8b4513] text-[#8b4513] hover:text-white border border-[#8b4513]/30 transition shadow-2xs cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-[#8b4513]/10 hover:bg-[#8b4513] text-[#8b4513] hover:text-white border border-[#8b4513]/30 transition shadow-2xs cursor-pointer"
               title="Bulk Buy & Wholesale Inquiries"
             >
               <Building2 className="w-3.5 h-3.5" />
@@ -264,23 +265,23 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="header-search-btn"
               onClick={onOpenSearch}
-              className="p-2 sm:p-2.5 text-[#3a332d] hover:text-[#8b4513] hover:bg-[#ede5da] rounded-full transition cursor-pointer"
+              className="p-1.5 sm:p-2.5 text-[#3a332d] hover:text-[#8b4513] hover:bg-[#ede5da] rounded-full transition cursor-pointer"
               title="Search Catalog"
               aria-label="Search Catalog"
             >
-              <Search className="w-5 h-5" />
+              <Search className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             <button
               id="header-wishlist-btn"
               onClick={onOpenWishlist}
-              className="relative p-2 sm:p-2.5 text-[#3a332d] hover:text-[#8b4513] hover:bg-[#ede5da] rounded-full transition cursor-pointer"
+              className="relative p-1.5 sm:p-2.5 text-[#3a332d] hover:text-[#8b4513] hover:bg-[#ede5da] rounded-full transition cursor-pointer"
               title="View Wishlist"
               aria-label="View Wishlist"
             >
-              <Heart className="w-5 h-5" />
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
               {wishlistCount > 0 && (
-                <span className="absolute top-1 right-1 bg-[#8b4513] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+                <span className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 bg-[#8b4513] text-white text-[9px] sm:text-[10px] font-bold w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full flex items-center justify-center animate-pulse">
                   {wishlistCount}
                 </span>
               )}
@@ -289,13 +290,13 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="header-cart-btn"
               onClick={onOpenCart}
-              className="relative p-2 sm:p-2.5 bg-[#231f1c] text-[#faf8f5] hover:bg-[#8b4513] rounded-full transition shadow-sm cursor-pointer"
+              className="relative p-1.5 sm:p-2.5 bg-[#231f1c] text-[#faf8f5] hover:bg-[#8b4513] rounded-full transition shadow-sm cursor-pointer"
               title="Shopping Bag"
               aria-label="Shopping Bag"
             >
-              <ShoppingBag className="w-5 h-5" />
+              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
               {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#c19a6b] text-[#1a1614] text-[11px] font-extrabold w-5 h-5 rounded-full flex items-center justify-center shadow-md">
+                <span className="absolute -top-1 -right-1 bg-[#c19a6b] text-[#1a1614] text-[10px] sm:text-[11px] font-extrabold w-4.5 h-4.5 sm:w-5 sm:h-5 rounded-full flex items-center justify-center shadow-md">
                   {cartCount}
                 </span>
               )}
@@ -318,34 +319,66 @@ export const Header: React.FC<HeaderProps> = ({
               Home
             </button>
 
-            {/* Mobile Nested Collections Section */}
-            <div className="bg-white rounded-2xl border border-[#e8dfd3] p-2 space-y-1">
-              <div className="flex items-center justify-between p-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#1a1614]">Collections</span>
-                <button
-                  id="mobile-view-all-btn"
-                  onClick={() => handleNavClick('shop', 'All')}
-                  className="text-xs font-semibold text-[#8b4513] hover:underline"
-                >
-                  View All &rarr;
-                </button>
-              </div>
+            {/* Mobile Foldable Collections Accordion */}
+            <div className="bg-white rounded-2xl border border-[#e8dfd3] overflow-hidden">
+              <button
+                type="button"
+                id="mobile-collections-toggle-btn"
+                onClick={() => setMobileCollectionsOpen(!mobileCollectionsOpen)}
+                className="w-full flex items-center justify-between p-3 text-left transition hover:bg-[#faf6f0] cursor-pointer"
+                aria-expanded={mobileCollectionsOpen}
+              >
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-[#8b4513]" />
+                  <span className="text-sm font-semibold text-[#1a1614]">Collections</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#ede5da] text-[#73665a] font-bold">
+                    {categories.length}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-[#8b4513]">
+                    {mobileCollectionsOpen ? 'Hide' : 'Browse'}
+                  </span>
+                  <ChevronDown
+                    className={`w-4 h-4 text-[#8b4513] transition-transform duration-200 ${
+                      mobileCollectionsOpen ? 'rotate-180' : ''
+                    }`}
+                  />
+                </div>
+              </button>
 
-              <div className="grid grid-cols-1 gap-1 max-h-[300px] overflow-y-auto">
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    id={`mobile-nav-${cat.id.toLowerCase()}`}
-                    onClick={() => handleNavClick('shop', cat.id)}
-                    className="p-2.5 text-left rounded-xl text-xs font-semibold text-[#3a332d] hover:bg-[#faf6f0] hover:text-[#8b4513] flex items-center gap-2.5 transition cursor-pointer"
-                  >
-                    <div className="p-1 rounded-md bg-[#ede5da] text-[#8b4513] shrink-0">
-                      {getCategoryIcon(cat.id)}
-                    </div>
-                    <span className="truncate">{cat.name}</span>
-                  </button>
-                ))}
-              </div>
+              {mobileCollectionsOpen && (
+                <div className="p-2 pt-0 border-t border-[#f2ece2] bg-[#faf8f5]/60 space-y-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="flex items-center justify-between px-2 pt-2 pb-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#8c7b6d]">
+                      Select Category
+                    </span>
+                    <button
+                      id="mobile-view-all-btn"
+                      onClick={() => handleNavClick('shop', 'All')}
+                      className="text-xs font-bold text-[#8b4513] hover:underline cursor-pointer"
+                    >
+                      Shop All Items &rarr;
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-1 max-h-[260px] overflow-y-auto">
+                    {categories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        id={`mobile-nav-${cat.id.toLowerCase()}`}
+                        onClick={() => handleNavClick('shop', cat.id)}
+                        className="p-2.5 text-left rounded-xl text-xs font-semibold text-[#3a332d] hover:bg-white hover:text-[#8b4513] flex items-center gap-2.5 transition cursor-pointer"
+                      >
+                        <div className="p-1.5 rounded-lg bg-[#ede5da] text-[#8b4513] shrink-0">
+                          {getCategoryIcon(cat.id)}
+                        </div>
+                        <span className="truncate">{cat.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <button
@@ -376,12 +409,12 @@ export const Header: React.FC<HeaderProps> = ({
                 activePage === 'contact' ? 'bg-[#ede5da] text-[#8b4513] font-semibold' : 'text-[#3a332d] hover:bg-[#f2ece2]'
               }`}
             >
-              Atelier & Contact
+              Showroom & Contact
             </button>
           </div>
 
           <div className="pt-3 border-t border-[#e8e0d5] flex items-center justify-between text-xs text-[#8c7b6d]">
-            <span>Crafted in Proddatur, AP</span>
+            <span>Showroom: Modampalli St, Proddatur</span>
             <span>Est. 2026</span>
           </div>
         </div>

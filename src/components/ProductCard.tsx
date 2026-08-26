@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Star, Heart, Eye, ShoppingBag, Check } from 'lucide-react';
 import { Product } from '../types';
-import { formatINR, calculateDiscount } from '../utils/format';
+import { formatINR, calculateDiscount, normalizeImageUrl } from '../utils/format';
 
 interface ProductCardProps {
   product: Product;
@@ -25,9 +25,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const [justAdded, setJustAdded] = useState(false);
 
   const currentColor = product.colors[selectedColorIdx] || product.colors[0];
-  const displayImage = isHovered && currentColor.secondaryImage
+  const rawImage = isHovered && currentColor.secondaryImage
     ? currentColor.secondaryImage
     : currentColor.image;
+  const displayImage = normalizeImageUrl(rawImage);
 
   const discount = calculateDiscount(product.originalPrice || 0, product.price);
 

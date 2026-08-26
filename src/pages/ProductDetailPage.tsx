@@ -14,16 +14,20 @@ import {
   Building2,
   Check,
   Award,
-  MessageCircle
+  MessageCircle,
+  ChevronRight
 } from 'lucide-react';
 import { Product, ProductCategory } from '../types';
 import { ProductCard } from '../components/ProductCard';
-import { formatINR, calculateDiscount } from '../utils/format';
+import { ReviewsSection } from '../components/ReviewsSection';
+import { formatINR, calculateDiscount, normalizeImageUrl } from '../utils/format';
 
 interface ProductDetailPageProps {
   product: Product;
   allProducts: Product[];
   onBackToShop: () => void;
+  onNavigateToHome?: () => void;
+  onNavigateToShop?: (category?: ProductCategory) => void;
   onSelectProduct: (product: Product) => void;
   onQuickView: (product: Product) => void;
   onAddToCart: (product: Product, colorName: string, size?: string, quantity?: number) => void;
@@ -38,6 +42,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   product,
   allProducts,
   onBackToShop,
+  onNavigateToHome,
+  onNavigateToShop,
   onSelectProduct,
   onQuickView,
   onAddToCart,
@@ -80,24 +86,53 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 space-y-12">
       
       {/* Breadcrumbs & Back button */}
-      <div className="flex items-center justify-between text-xs text-[#8c7b6d] border-b border-[#e8dfd3] pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#8c7b6d] border-b border-[#e8dfd3] pb-4">
         <button
           id="pdp-back-btn"
           onClick={onBackToShop}
-          className="inline-flex items-center gap-1 text-[#8b4513] hover:text-[#5e2d0a] font-semibold transition cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-[#8b4513] hover:text-[#5e2d0a] font-semibold transition cursor-pointer"
         >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to Collections
+          <ArrowLeft className="w-4 h-4" /> Back to Collections
         </button>
 
-        <div className="hidden sm:flex items-center gap-2">
-          <span>Home</span>
-          <span>/</span>
-          <span>Collections</span>
-          <span>/</span>
-          <span>{product.category}</span>
-          <span>/</span>
-          <span className="text-[#231f1c] font-medium truncate max-w-xs">{product.name}</span>
-        </div>
+        <nav aria-label="Breadcrumb" className="flex items-center flex-wrap gap-1.5 sm:gap-2">
+          <button
+            id="breadcrumb-home-btn"
+            onClick={() => {
+              if (onNavigateToHome) onNavigateToHome();
+              else onBackToShop();
+            }}
+            className="text-[#8c7b6d] hover:text-[#8b4513] font-medium transition cursor-pointer"
+          >
+            Home
+          </button>
+          <span className="text-[#d8ccbe]">/</span>
+          <button
+            id="breadcrumb-collections-btn"
+            onClick={() => {
+              if (onNavigateToShop) onNavigateToShop('All');
+              else onBackToShop();
+            }}
+            className="text-[#8c7b6d] hover:text-[#8b4513] font-medium transition cursor-pointer"
+          >
+            Collections
+          </button>
+          <span className="text-[#d8ccbe]">/</span>
+          <button
+            id="breadcrumb-category-btn"
+            onClick={() => {
+              if (onNavigateToShop) onNavigateToShop(product.category);
+              else onBackToShop();
+            }}
+            className="text-[#8c7b6d] hover:text-[#8b4513] font-medium transition cursor-pointer"
+          >
+            {product.category}
+          </button>
+          <span className="text-[#d8ccbe]">/</span>
+          <span className="text-[#231f1c] font-bold truncate max-w-[180px] sm:max-w-xs">
+            {product.name}
+          </span>
+        </nav>
       </div>
 
       {/* Main Product Showcase Section */}
@@ -108,7 +143,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           {/* Main Large Image Container */}
           <div className="relative aspect-4/3 sm:aspect-square w-full rounded-2xl overflow-hidden bg-[#f4eee5] border border-[#e8dfd3] shadow-sm">
             <img
-              src={product.images[activeImageIdx] || currentColor.image}
+              src={normalizeImageUrl(product.images[activeImageIdx] || currentColor.image)}
               alt={product.name}
               className="w-full h-full object-cover object-center"
             />
@@ -142,7 +177,7 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     : 'border-transparent opacity-70 hover:opacity-100'
                 }`}
               >
-                <img src={img} alt={`${product.name} angle ${i + 1}`} className="w-full h-full object-cover" />
+                <img src={normalizeImageUrl(img)} alt={`${product.name} angle ${i + 1}`} className="w-full h-full object-cover" />
               </button>
             ))}
           </div>
@@ -364,59 +399,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                     <div><strong>Hardware:</strong> {product.hardware}</div>
                     <div><strong>Lining:</strong> {product.lining}</div>
                   </div>
-                  <ul className="list-disc pl-4 space-y-1 pt-2">
-                    {product.features.map((f, idx) => (
-                      <li key={idx}>{f}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            {/* 2. Materials & Craftsmanship */}
-            <div className="border border-[#e8dfd3] rounded-xl overflow-hidden bg-white">
-              <button
-                id="accordion-craft-btn"
-                onClick={() => toggleAccordion('craft')}
-                className="w-full p-4 text-left flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#231f1c] hover:bg-[#faf8f5] transition cursor-pointer"
-              >
-                <span>Materials & Vegetable Tanning</span>
-                {openAccordion === 'craft' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-              {openAccordion === 'craft' && (
-                <div className="p-4 pt-0 text-xs text-[#6b5f54] space-y-2 border-t border-[#f0e9df] mt-2">
-                  <p className="leading-relaxed pt-2">
-                    {product.description}
-                  </p>
-                  <ul className="list-disc pl-4 space-y-1 pt-1">
-                    {product.craftsmanshipNotes.map((c, idx) => (
-                      <li key={idx}>{c}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-
-            {/* 3. Leather Care & Patina Evolution */}
-            <div className="border border-[#e8dfd3] rounded-xl overflow-hidden bg-white">
-              <button
-                id="accordion-care-btn"
-                onClick={() => toggleAccordion('care')}
-                className="w-full p-4 text-left flex items-center justify-between text-xs font-bold uppercase tracking-wider text-[#231f1c] hover:bg-[#faf8f5] transition cursor-pointer"
-              >
-                <span>Leather Care & Patina Guide</span>
-                {openAccordion === 'care' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-              </button>
-              {openAccordion === 'care' && (
-                <div className="p-4 pt-0 text-xs text-[#6b5f54] space-y-2 border-t border-[#f0e9df] mt-2">
-                  <p className="leading-relaxed pt-2">
-                    Vegetable-tanned full-grain leather is an organic, breathing material. With age and natural exposure to oils and sunlight, it develops a deep, rich, golden-brown patina unique to your habits.
-                  </p>
-                  <ul className="list-disc pl-4 space-y-1 pt-1">
-                    {product.careInstructions.map((ci, idx) => (
-                      <li key={idx}>{ci}</li>
-                    ))}
-                  </ul>
+                  {product.features && product.features.length > 0 && (
+                    <ul className="list-disc pl-4 space-y-1 pt-2">
+                      {product.features.map((f, idx) => (
+                        <li key={idx}>{f}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
             </div>
@@ -456,6 +445,11 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             />
           ))}
         </div>
+      </section>
+
+      {/* PRODUCT PATRON REVIEWS & RATINGS */}
+      <section className="pt-10 border-t border-[#e8dfd3]">
+        <ReviewsSection currentProduct={product} allProducts={allProducts} onSelectProduct={onSelectProduct} />
       </section>
 
       {/* Sticky Mobile Bottom Purchase Bar (for effortless mobile buying) */}

@@ -27,6 +27,7 @@ import {
   deleteCategoryApi,
   updateSiteConfigApi,
 } from './services/api';
+import { getUserSession, syncUserSession, trackUserAction } from './utils/session';
 
 const DEFAULT_HOME_CONFIG: HomePageConfig = {
   heroProductId: 'heritage-satchel',
@@ -40,9 +41,9 @@ const DEFAULT_HOME_CONFIG: HomePageConfig = {
     'signature-leather-tote',
   ],
   announcementText: 'NEW IN 2026 • EVERYDAY LEATHER ESSENTIALS FOR DAILY USE',
-  announcementLocation: 'PRODDATUR WORKSHOP',
+  announcementLocation: 'PRODDATUR SHOWROOM',
   announcementBadge: 'SIMPLE & HONEST VALUE',
-  whatsappNumber: '918247677511',
+  whatsappNumber: '917386500505',
 };
 
 export default function App() {
@@ -100,9 +101,10 @@ export default function App() {
           parsed.whatsappNumber === '8564250112' ||
           parsed.whatsappNumber === '91824767751' ||
           parsed.whatsappNumber === '824767751' ||
+          parsed.whatsappNumber === '918247677511' ||
           parsed.whatsappNumber.includes('98765')
         ) {
-          parsed.whatsappNumber = '918247677511';
+          parsed.whatsappNumber = '917386500505';
         }
         return { ...DEFAULT_HOME_CONFIG, ...parsed };
       }
@@ -128,36 +130,143 @@ export default function App() {
     }
   }, [homeConfig]);
 
-  // Initial sync from SQLite database on mount
-  useEffect(() => {
-    let isMounted = true;
-    async function syncFromSqlite() {
-      try {
-        const [dbProductsRes, dbCatsRes, dbConfigRes] = await Promise.allSettled([
-          fetchProductsApi(),
-          fetchCategoriesApi(),
-          fetchSiteConfigApi(),
-        ]);
-
-        if (!isMounted) return;
-
-        if (dbProductsRes.status === 'fulfilled' && dbProductsRes.value.length > 0) {
-          setProducts(dbProductsRes.value);
-        }
-        if (dbCatsRes.status === 'fulfilled' && dbCatsRes.value.length > 0) {
-          setCategories(dbCatsRes.value);
-        }
-        if (dbConfigRes.status === 'fulfilled' && dbConfigRes.value) {
-          setHomeConfig(dbConfigRes.value);
-        }
-      } catch (err) {
-        console.warn('[SQLite] Initial load fallback to client storage:', err);
+  // --- Dynamic URL & History State Synchronization ---
+  const syncUrlWithState = (
+    page: ActivePage,
+    prod?: Product | null,
+    cat?: ProductCategory,
+    replace = false
+  ) => {
+    try {
+      let targetSearch = '';
+      if (page === 'product-detail' && prod) {
+        targetSearch = `?page=product&id=${encodeURIComponent(prod.id)}`;
+      } else if (page === 'shop') {
+        targetSearch =
+          cat && cat !== 'All'
+            ? `?page=shop&category=${encodeURIComponent(cat)}`
+            : `?page=shop`;
+      } else if (page === 'story') {
+        targetSearch = `?page=story`;
+      } else if (page === 'contact') {
+        targetSearch = `?page=contact`;
+      } else if (page === 'admin') {
+        targetSearch = `?page=admin`;
+      } else {
+        targetSearch = '';
       }
-    }
 
-    syncFromSqlite();
+      const targetPath = window.location.pathname + targetSearch;
+      if (window.location.search !== targetSearch) {
+        if (replace) {
+          window.history.replaceState({ page, productId: prod?.id, category: cat }, '', targetPath);
+        } else {
+          window.history.pushState({ page, productId: prod?.id, category: cat }, '', targetPath);
+        }
+      }
+    } catch {
+      // history API unavailable in some sandboxes
+    }
+  };
+
+  // Sync state from current browser URL
+  const syncStateFromUrl = (currentProducts: Product[]) => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const pageParam = params.get('page');
+      const idParam = params.get('id') || params.get('product');
+      const catParam = params.get('category');
+
+      if ((pageParam === 'product' || idParam) && currentProducts.length > 0) {
+        const found = currentProducts.find(
+          (p) =>
+            p.id === idParam ||
+            p.name.toLowerCase().replace(/[^a-z0-9]+/g, '-') === idParam
+        );
+        if (found) {
+          setSelectedProduct(found);
+          setActivePage('product-detail');
+          return true;
+        }
+      }
+
+      if (pageParam === 'shop') {
+        setActivePage('shop');
+        if (catParam) setSelectedCategory(catParam as ProductCategory);
+        return true;
+      }
+
+      if (pageParam === 'story') {
+        setActivePage('story');
+        return true;
+      }
+
+      if (pageParam === 'contact') {
+        setActivePage('contact');
+        return true;
+      }
+
+      if (pageParam === 'admin') {
+        setActivePage('admin');
+        return true;
+      }
+
+      if (pageParam === 'home') {
+        setActivePage('home');
+        return true;
+      }
+    } catch (e) {
+      console.warn('Failed parsing URL params:', e);
+    }
+    return false;
+  };
+
+  // Sync from SQLite database and handle initial deep-link
+  const syncCatalogFromDb = async () => {
+    try {
+      const [dbProductsRes, dbCatsRes, dbConfigRes] = await Promise.allSettled([
+        fetchProductsApi(),
+        fetchCategoriesApi(),
+        fetchSiteConfigApi(),
+      ]);
+
+      if (dbProductsRes.status === 'fulfilled' && dbProductsRes.value.length > 0) {
+        setProducts(dbProductsRes.value);
+        syncStateFromUrl(dbProductsRes.value);
+      }
+      if (dbCatsRes.status === 'fulfilled' && dbCatsRes.value.length > 0) {
+        setCategories(dbCatsRes.value);
+      }
+      if (dbConfigRes.status === 'fulfilled' && dbConfigRes.value) {
+        setHomeConfig(dbConfigRes.value);
+      }
+    } catch (err) {
+      console.warn('[SQLite] Catalog sync fallback:', err);
+    }
+  };
+
+  // Initial sync from SQLite database on mount & listen to browser history
+  useEffect(() => {
+    syncCatalogFromDb();
+
+    const handlePopState = () => {
+      syncStateFromUrl(products);
+    };
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        syncCatalogFromDb();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+
     return () => {
-      isMounted = false;
+      window.removeEventListener('popstate', handlePopState);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
     };
   }, []);
 
@@ -174,11 +283,12 @@ export default function App() {
     code: '',
   });
 
-  // Cart & Wishlist persistence
+  // Cart & Wishlist persistence (Strictly empty default for a clean user state)
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem('althaf_leathers_cart');
-      return saved ? JSON.parse(saved) : [];
+      if (saved) return JSON.parse(saved);
+      return [];
     } catch {
       return [];
     }
@@ -187,15 +297,20 @@ export default function App() {
   const [wishlistIds, setWishlistIds] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('althaf_leathers_wishlist');
-      return saved ? JSON.parse(saved) : ['heritage-satchel', 'classic-bifold-wallet'];
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+      return [];
     } catch {
-      return ['heritage-satchel', 'classic-bifold-wallet'];
+      return [];
     }
   });
 
   useEffect(() => {
     try {
       localStorage.setItem('althaf_leathers_cart', JSON.stringify(cartItems));
+      syncUserSession({ cart: cartItems });
     } catch (e) {
       console.error('Failed to save cart:', e);
     }
@@ -204,15 +319,30 @@ export default function App() {
   useEffect(() => {
     try {
       localStorage.setItem('althaf_leathers_wishlist', JSON.stringify(wishlistIds));
+      syncUserSession({ wishlist: wishlistIds });
     } catch (e) {
       console.error('Failed to save wishlist:', e);
     }
   }, [wishlistIds]);
 
-  // Handlers
+  // Dynamic Navigation Handlers with URL synchronization
+  const handleNavigatePage = (
+    page: ActivePage,
+    category?: ProductCategory,
+    product?: Product | null
+  ) => {
+    setActivePage(page);
+    if (category) setSelectedCategory(category);
+    if (product !== undefined) setSelectedProduct(product);
+    syncUrlWithState(page, product, category || selectedCategory);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleSelectProduct = (product: Product) => {
     setSelectedProduct(product);
     setActivePage('product-detail');
+    syncUrlWithState('product-detail', product, product.category);
+    trackUserAction('view_product', { productId: product.id, name: product.name });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -394,9 +524,12 @@ export default function App() {
       {/* Header */}
       <Header
         activePage={activePage}
-        setActivePage={setActivePage}
+        setActivePage={(page) => handleNavigatePage(page)}
         selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
+        setSelectedCategory={(cat) => {
+          setSelectedCategory(cat);
+          handleNavigatePage('shop', cat);
+        }}
         cartCount={cartItems.reduce((sum, item) => sum + item.quantity, 0)}
         wishlistCount={wishlistIds.length}
         onOpenCart={() => setIsCartOpen(true)}
@@ -419,13 +552,10 @@ export default function App() {
             wishlistIds={wishlistIds}
             onToggleWishlist={handleToggleWishlist}
             onNavigateToShop={(cat) => {
-              if (cat) setSelectedCategory(cat);
-              setActivePage('shop');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              handleNavigatePage('shop', cat || selectedCategory);
             }}
             onNavigateToStory={() => {
-              setActivePage('story');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              handleNavigatePage('story');
             }}
             onOpenBulkModal={handleOpenBulkModal}
             categories={categories}
@@ -436,7 +566,10 @@ export default function App() {
           <ShopPage
             products={products}
             selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
+            setSelectedCategory={(cat) => {
+              setSelectedCategory(cat);
+              syncUrlWithState('shop', undefined, cat);
+            }}
             onSelectProduct={handleSelectProduct}
             onQuickView={(p) => setQuickViewProduct(p)}
             onAddToCart={handleAddToCart}
@@ -451,8 +584,13 @@ export default function App() {
             product={selectedProduct}
             allProducts={products}
             onBackToShop={() => {
-              setActivePage('shop');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              handleNavigatePage('shop', selectedProduct.category);
+            }}
+            onNavigateToHome={() => {
+              handleNavigatePage('home');
+            }}
+            onNavigateToShop={(cat) => {
+              handleNavigatePage('shop', cat || 'All');
             }}
             onSelectProduct={handleSelectProduct}
             onQuickView={(p) => setQuickViewProduct(p)}
@@ -468,13 +606,10 @@ export default function App() {
         {activePage === 'story' && (
           <StoryPage
             onNavigateToShop={(cat) => {
-              if (cat) setSelectedCategory(cat);
-              setActivePage('shop');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              handleNavigatePage('shop', cat || selectedCategory);
             }}
             onNavigateToContact={() => {
-              setActivePage('contact');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              handleNavigatePage('contact');
             }}
           />
         )}
@@ -492,13 +627,10 @@ export default function App() {
             homeConfig={homeConfig}
             onSaveHomeConfig={handleSaveHomeConfig}
             onNavigateToHome={() => {
-              setActivePage('home');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              handleNavigatePage('home');
             }}
             onNavigateToShop={(cat) => {
-              if (cat) setSelectedCategory(cat);
-              setActivePage('shop');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              handleNavigatePage('shop', cat || selectedCategory);
             }}
             onSelectProduct={handleSelectProduct}
           />
@@ -507,8 +639,12 @@ export default function App() {
 
       {/* Footer */}
       <Footer
-        setActivePage={setActivePage}
-        setSelectedCategory={setSelectedCategory}
+        setActivePage={(page) => handleNavigatePage(page)}
+        setSelectedCategory={(cat) => {
+          setSelectedCategory(cat);
+          handleNavigatePage('shop', cat);
+        }}
+        showTrustPillars={activePage === 'home'}
       />
 
       {/* Cart Drawer */}
